@@ -30,7 +30,7 @@ runcmd:
   # ЗАМЕНИТЬ: вставь реальный raw GitHub URL до setup-vps.sh
   - |
     curl -fsSL \
-      "ВСТАВИТЬ_URL_СЮДА__setup-vps.sh" \
+      "https://raw.githubusercontent.com/nfsishka-dot/nfc-cards/main/deploy/setup-vps.sh" \
       -o /root/setup-vps.sh \
     && bash /root/setup-vps.sh > /root/setup-vps.log 2>&1 \
     && echo "setup-vps.sh: OK" \
@@ -40,7 +40,7 @@ runcmd:
   # ЗАМЕНИТЬ: вставь реальный raw GitHub URL до deploy.sh
   - |
     curl -fsSL \
-      "ВСТАВИТЬ_URL_СЮДА__deploy.sh" \
+      "https://raw.githubusercontent.com/nfsishka-dot/nfc-cards/main/deploy/deploy.sh" \
       -o /var/www/app/deploy.sh \
     && chmod +x /var/www/app/deploy.sh \
     && chown deploy:deploy /var/www/app/deploy.sh \
