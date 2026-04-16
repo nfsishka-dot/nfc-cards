@@ -1,0 +1,66 @@
+/* Custom editor fonts (additional).
+   NOTE: internal names are short and system-styled; do not expose vendor font names.
+   We currently ship TTF only; for production performance add WOFF2 alongside and extend src().
+*/
+
+@font-face { font-family: "FontSansA"; src: url("../fonts/sans/fsans01.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "FontScriptA"; src: url("../fonts/script/fscript01.ttf") format("truetype"); font-display: swap; }
+
+@font-face { font-family: "FontDisplayA"; src: url("../fonts/display/fdisp01.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "FontDisplayB"; src: url("../fonts/display/fdisp02.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "FontDisplayC"; src: url("../fonts/display/fdisp03.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "FontDisplayD"; src: url("../fonts/display/fdisp04.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "FontDisplayE"; src: url("../fonts/display/fdisp05.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "FontDisplayF"; src: url("../fonts/display/fdisp06.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "FontDisplayG"; src: url("../fonts/display/fdisp07.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "FontDisplayH"; src: url("../fonts/display/fdisp08.ttf") format("truetype"); font-display: swap; }
+@font-face { font-family: "FontDisplayI"; src: url("../fonts/display/fdisp09.ttf") format("truetype"); font-display: swap; }
+
+/* Quill: content rendering */
+.ql-editor .ql-font-fsansa { font-family: "FontSansA", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.ql-editor .ql-font-fscripta { font-family: "FontScriptA", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+
+.ql-editor .ql-font-fdispa { font-family: "FontDisplayA", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.ql-editor .ql-font-fdispb { font-family: "FontDisplayB", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.ql-editor .ql-font-fdispc { font-family: "FontDisplayC", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.ql-editor .ql-font-fdispd { font-family: "FontDisplayD", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.ql-editor .ql-font-fdispe { font-family: "FontDisplayE", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.ql-editor .ql-font-fdispf { font-family: "FontDisplayF", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.ql-editor .ql-font-fdispg { font-family: "FontDisplayG", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.ql-editor .ql-font-fdisph { font-family: "FontDisplayH", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+.ql-editor .ql-font-fdispi { font-family: "FontDisplayI", system-ui, -apple-system, "Segoe UI", Arial, sans-serif; }
+
+/* Quill: font picker labels (premium one-word naming) */
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fsansa"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fsansa"]::before { content: "Neosan"; font-family: "FontSansA", Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fscripta"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fscripta"]::before { content: "Lunara"; font-family: "FontScriptA", Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fdispa"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fdispa"]::before { content: "Axisa"; font-family: "FontDisplayA", Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fdispb"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fdispb"]::before { content: "Bolden"; font-family: "FontDisplayB", Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fdispc"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fdispc"]::before { content: "Primor"; font-family: "FontDisplayC", Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fdispd"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fdispd"]::before { content: "Framed"; font-family: "FontDisplayD", Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fdispe"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fdispe"]::before { content: "Voguee"; font-family: "FontDisplayE", Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fdispf"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fdispf"]::before { content: "Iconic"; font-family: "FontDisplayF", Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fdispg"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fdispg"]::before { content: "Fluxor"; font-family: "FontDisplayG", Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fdisph"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fdisph"]::before { content: "Aerion"; font-family: "FontDisplayH", Arial, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="fdispi"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="fdispi"]::before { content: "Echoes"; font-family: "FontDisplayI", Arial, sans-serif; }
+

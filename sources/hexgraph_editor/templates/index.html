@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hexgraph</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/color-picker.css') }}">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script src="{{ url_for('static', filename='js/colorPicker.js') }}"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Hexgraph</h1>
+        </div>
+    </header>
+    <main class="editor-create">
+        <h2>Create a New Post</h2>
+        <form id="editor-main-form" action="{{ url_for('preview_post') }}" method="post">
+            <input type="hidden" name="title" id="post-title" value="">
+            <div id="editor-container"></div>
+            <textarea id="content" name="content" style="display:none;"></textarea>
+            <input type="hidden" id="background_value" name="background_value" value='{"type":"color","value":"#ffffff"}'>
+        </form>
+        {% if editor_restore %}
+        <script type="application/json" id="editor-restore-json">{{ editor_restore | tojson }}</script>
+        {% endif %}
+    </main>
+    <script>
+        var allFonts = [
+            { value: 'sans-serif', label: 'Sans Serif' },
+            { value: 'serif', label: 'Serif' },
+            { value: 'monospace', label: 'Monospace' },
+            { value: 'lorenco', label: 'Lorenco' },
+            { value: 'capuletty', label: 'Capuletty' },
+            { value: 'abram', label: 'Abram' },
+            { value: 'grace', label: 'Grace' }
+        ];
+        var fontListToolbar = allFonts.slice(0, 3).map(function(f) { return f.value; });
+        var customFonts = allFonts.slice(3);
+        var fontListWhitelist = allFonts.map(function(f) { return f.value; });
+        var backgroundImages = JSON.parse('{{ background_images | tojson | safe }}');
+        var backgroundsBaseUrl = '{{ url_for("static", filename="backgrounds") }}/';
+        var Font = Quill.import('attributors/class/font') || Quill.import('attributors/style/font') || Quill.import('formats/font');
+        if (Font && Font.whitelist !== undefined) {
+            Font.whitelist = fontListWhitelist;
+            Quill.register(Font, true);
+        }
+
+        var quillToolbarBgColors = [false].concat([
+            '#000000', '#e60000', '#ff9900', '#ffff00', '#008a00', '#0066cc', '#9933ff', '#ffffff',
+            '#facccc', '#ffebcc', '#ffffcc', '#cce8cc', '#cce0f5', '#ebd6ff', '#bbbbbb',
+            '#f06666', '#ffc266', '#ffff66', '#66b966', '#66a3e0', '#c285ff', '#888888',
+            '#a10000', '#b26b00', '#b2b200', '#006100', '#0047b2', '#6b24b2', '#444444',
+            '#5c0000', '#663d00', '#666600', '#003700', '#002966', '#3d1466'
+        ]);
+
+        var quill = new Quill('#editor-container', {
+            theme: 'snow',
+            modules: {
+                toolbar: [
+                    [{ 'font': fontListToolbar }, { 'header': [1, 2, 3, 4, 5, false] }],
+                    [{ 'align': [] }, { 'list': 'bullet' }],
+                    ['bold', 'italic', 'underline'],
+                    ['image', 'link'],
+                    [{ 'color': [] }, { 'background': quillToolbarBgColors }],
+                    ['clean'],
+                ]
+            }
+        });
+
+        (function setupBackgroundHighlightPickerUi() {
+            var root = document.querySelector('.ql-toolbar .ql-background');
+            if (!root) return;
+            function isClearBgPickerItem(el) {
+                if (!el.hasAttribute('data-value')) return true;
+                var v = el.getAttribute('data-value');
+                return v === '' || v === 'false';
+            }
+            function mark() {
+                root.querySelectorAll('.ql-picker-item').forEach(function(el) {
+                    if (isClearBgPickerItem(el)) {
+                        el.classList.add('hg-ql-bg-clear');
+                        el.setAttribute('title', 'Прозрачный');
+                        el.setAttribute('aria-label', 'Прозрачный');
+                    } else if (el.getAttribute('data-value') === '#ffffff') {
+                        el.setAttribute('title', 'Белый');
+                        el.setAttribute('aria-label', 'Белый');
+                    }
+                });
+            }
+            mark();
+            var opts = root.querySelector('.ql-picker-options');
+            if (opts) {
+                var mo = new MutationObserver(function() { mark(); });
+                mo.observe(opts, { childList: true, subtree: true });
+            }
+        })();
+
+        (function setupFontPicker() {
+            var optionsContainer = document.querySelector('.ql-font .ql-picker-options');
+            var fontPicker = document.querySelector('.ql-font');
+            if (!optionsContainer || !fontPicker) return;
+            function selectFont(value) {
+                var cur = quill.getFormat();
+                if (cur.font === value) {
+                    fontPicker.classList.remove('ql-expanded');
+                    return;
+                }
+                quill.format('font', value);
+                var label = fontPicker.querySelector('.ql-picker-label');
+                if (label) label.setAttribute('data-value', value);
+                fontPicker.classList.remove('ql-expanded');
+            }
+            customFonts.forEach(function(font) {
+                if (optionsContainer.querySelector('.ql-picker-item[data-value="' + font.value + '"]')) return;
+                var item = document.createElement('span');
+                item.className = 'ql-picker-item';
+                item.setAttribute('data-value', font.value);
+                item.addEventListener('click', function() { selectFont(font.value); });
+                optionsContainer.appendChild(item);
+            });
+        })();
+
+        (function setupHeaderPicker() {
+            var picker = document.querySelector('.ql-toolbar .ql-header');
+            if (!picker) return;
+
+            function normalizeHeaderPickerUi() {
+                picker.querySelectorAll('.ql-picker-label[data-label], .ql-picker-item[data-label]').forEach(function(el) {
+                    el.removeAttribute('data-label');
+                });
+                picker.querySelectorAll('.ql-picker-item').forEach(function(el) {
+                    var v = el.getAttribute('data-value');
+                    if (v === 'false' || v === '' || v == null) {
+                        el.style.display = 'none';
+                        el.setAttribute('aria-hidden', 'true');
+                    }
+                });
+            }
+
+            normalizeHeaderPickerUi();
+
+            var opts = picker.querySelector('.ql-picker-options');
+            if (opts) {
+                var mo = new MutationObserver(normalizeHeaderPickerUi);
+                mo.observe(opts, { childList: true, subtree: true });
+            }
+
+            quill.on('selection-change', function() {
+                requestAnimationFrame(normalizeHeaderPickerUi);
+            });
+        })();
+
+        (function removeCustomFontOptionsFromDom() {
+            customFonts.forEach(function(f) {
+                var opt = document.querySelector('.ql-font option[value="' + f.value + '"]') || document.querySelector('option[value="' + f.value + '"]');
+                if (opt) opt.remove();
+            });
+        })();
+
+        document.querySelector('form').addEventListener('submit', function() {
+            document.querySelector('#content').value = quill.root.innerHTML;
+        });
+
+        var selectedEditorImage = null;
+
+        (function setupImageResize() {
+            var container = document.querySelector('#editor-container');
+            var editor = document.querySelector('#editor-container .ql-editor');
+            if (!container || !editor) return;
+
+            var overlay = document.createElement('div');
+            overlay.id = 'image-resize-overlay';
+            var handle = document.createElement('div');
+            handle.className = 'resize-handle';
+            overlay.appendChild(handle);
+            container.appendChild(overlay);
+
+            var currentImg = null;
+            var startX, startY, startW, startH, aspectRatio;
+
+            function positionOverlay(img) {
+                var cr = container.getBoundingClientRect();
+                var ir = img.getBoundingClientRect();
+                overlay.style.left = (ir.left - cr.left) + 'px';
+                overlay.style.top = (ir.top - cr.top) + 'px';
+                overlay.style.width = img.offsetWidth + 'px';
+                overlay.style.height = img.offsetHeight + 'px';
+            }
+
+            function showOverlay(img) {
+                if (currentImg) currentImg.classList.remove('ql-image-selected');
+                currentImg = img;
+                selectedEditorImage = img;
+                img.classList.add('ql-image-selected');
+                overlay.classList.add('active');
+                positionOverlay(img);
+            }
+
+            function hideOverlay() {
+                if (currentImg) currentImg.classList.remove('ql-image-selected');
+                overlay.classList.remove('active');
+                currentImg = null;
+                selectedEditorImage = null;
+            }
+
+            editor.addEventListener('click', function(e) {
+                var t = e.target;
+                if (t.tagName === 'IMG') {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showOverlay(t);
+                } else if (t !== overlay && !overlay.contains(t)) {
+                    hideOverlay();
+                }
+            });
+
+            /* Тач: выделение картинки без ожидания synthetic click */
+            editor.addEventListener('pointerdown', function(e) {
+                if (e.pointerType !== 'touch') return;
+                if (e.target.tagName !== 'IMG') return;
+                e.preventDefault();
+                e.stopPropagation();
+                showOverlay(e.target);
+            }, true);
+
+            editor.addEventListener('scroll', function() {
+                if (currentImg && overlay.classList.contains('active')) positionOverlay(currentImg);
+            });
+
+            function beginResize(clientX, clientY, e) {
+                if (!currentImg) return;
+                startX = clientX;
+                startY = clientY;
+                startW = currentImg.offsetWidth;
+                startH = currentImg.offsetHeight;
+                aspectRatio = startH / startW;
+                var pid = e && e.pointerId != null ? e.pointerId : null;
+
+                function move(ev) {
+                    if (pid != null && ev.pointerId !== pid) return;
+                    ev.preventDefault();
+                    var dx = ev.clientX - startX;
+                    var dy = ev.clientY - startY;
+                    var newW = Math.max(50, Math.round(startW + dx));
+                    var newH = Math.max(50, Math.round(newW * aspectRatio));
+                    currentImg.style.width = newW + 'px';
+                    currentImg.style.height = newH + 'px';
+                    positionOverlay(currentImg);
+                }
+                function end(ev) {
+                    if (pid != null && ev && ev.pointerId !== pid) return;
+                    if (pid != null && handle.releasePointerCapture && ev) {
+                        try { handle.releasePointerCapture(pid); } catch (err) {}
+                    }
+                    document.removeEventListener('pointermove', move);
+                    document.removeEventListener('pointerup', end);
+                    document.removeEventListener('pointercancel', end);
+                    document.removeEventListener('mousemove', move);
+                    document.removeEventListener('mouseup', end);
+                    document.body.classList.remove('is-resizing-editor-image');
+                    handle.classList.remove('resize-handle--dragging');
+                }
+
+                document.body.classList.add('is-resizing-editor-image');
+                handle.classList.add('resize-handle--dragging');
+
+                if (window.PointerEvent && e && typeof e.pointerId === 'number') {
+                    try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+                    document.addEventListener('pointermove', move, { passive: false });
+                    document.addEventListener('pointerup', end, { passive: false });
+                    document.addEventListener('pointercancel', end, { passive: false });
+                } else {
+                    document.addEventListener('mousemove', move, { passive: false });
+                    document.addEventListener('mouseup', end, { passive: false });
+                }
+            }
+
+            if (window.PointerEvent) {
+                handle.addEventListener('pointerdown', function(e) {
+                    if (!currentImg) return;
+                    if (e.button != null && e.button !== 0) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    beginResize(e.clientX, e.clientY, e);
+                }, { passive: false });
+            } else {
+                handle.addEventListener('mousedown', function(e) {
+                    if (!currentImg) return;
+                    if (e.button !== 0) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    beginResize(e.clientX, e.clientY, null);
+                });
+            }
+        })();
+
+        (function setupImageAlign() {
+            var alignValues = ['left', 'center', 'right', 'justify', ''];
+            var alignClasses = ['ql-image-align-left', 'ql-image-align-center', 'ql-image-align-right'];
+            // Keep previous explicit size when switching through "justify" (width: 100%)
+            // so that left/center/right can visibly move again.
+            var imagePrevSize = new Map();
+            function applyAlignToImage(img, value) {
+                if (value === '' || value === null) value = 'left';
+                alignClasses.forEach(function(c) { img.classList.remove(c); });
+                if (value === 'justify') {
+                    imagePrevSize.set(img, {
+                        width: img.style.width || '',
+                        height: img.style.height || ''
+                    });
+                    img.style.setProperty('float', 'none', 'important');
+                    img.style.width = '100%';
+                    img.style.marginLeft = '';
+                    img.style.marginRight = '';
+                } else {
+                    if (imagePrevSize.has(img)) {
+                        var prev = imagePrevSize.get(img);
+                        if (prev.width) img.style.width = prev.width; else img.style.removeProperty('width');
+                        if (prev.height) img.style.height = prev.height; else img.style.removeProperty('height');
+                        imagePrevSize.delete(img);
+                    }
+                    img.classList.add('ql-image-align-' + value);
+                    img.style.display = 'block';
+                    // Force positioning even if some Quill/default styles conflict.
+                    var floatValue = value === 'left' ? 'left' : (value === 'right' ? 'right' : 'none');
+                    img.style.setProperty('float', floatValue, 'important');
+                    img.style.setProperty('margin-left', value === 'left' ? '0' : 'auto', 'important');
+                    img.style.setProperty('margin-right', value === 'right' ? '0' : 'auto', 'important');
+                }
+
+                // Quill stores alignment on the surrounding block (e.g. <p class="ql-align-center">...</p>),
+                // so update the parent block classes; otherwise the image visually stays centered.
+                var parent = img.parentElement;
+                if (parent && (parent.tagName === 'P' || parent.tagName === 'DIV')) {
+                    parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right', 'ql-align-justify');
+                    if (value === 'left') parent.classList.add('ql-align-left');
+                    if (value === 'center') parent.classList.add('ql-align-center');
+                    if (value === 'right') parent.classList.add('ql-align-right');
+                    if (value === 'justify') parent.classList.add('ql-align-justify');
+                }
+            }
+            function getSelectedImage() {
+                if (selectedEditorImage && document.contains(selectedEditorImage)) return selectedEditorImage;
+                var range = quill.getSelection();
+                if (!range || range.length !== 1) return null;
+                var leaf = quill.getLeaf(range.index);
+                if (!leaf || !leaf[0]) return null;
+                var node = leaf[0].domNode;
+                return node && node.tagName === 'IMG' ? node : null;
+            }
+            // Toolbar находится вне #editor-container, поэтому обработчик должен слушать весь документ.
+            document.addEventListener('mousedown', function(e) {
+                var item = e.target.closest('.ql-align .ql-picker-item');
+                if (!item) return;
+                var value = item.getAttribute('data-value');
+                if (value === null) value = '';
+                if (alignValues.indexOf(value) === -1) return;
+
+                var img = getSelectedImage();
+                if (!img) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+                applyAlignToImage(img, value === '' ? 'left' : value);
+
+                var picker = document.querySelector('.ql-align');
+                if (picker) picker.classList.remove('ql-expanded');
+            }, true);
+        })();
+
+        (function setupPostBackgroundPicker() {
+            var toolbar = document.querySelector('.ql-toolbar');
+            var editorContainer = document.getElementById('editor-container');
+            var hiddenInput = document.getElementById('background_value');
+            if (!toolbar || !editorContainer || !hiddenInput) return;
+
+            var currentBg = { type: 'color', value: '#ffffff' };
+            var colorPickerApi = null;
+
+            function setHidden(bg) {
+                hiddenInput.value = JSON.stringify(bg);
+            }
+
+            function bgToUrl(bg) {
+                if (!bg || bg.type !== 'image') return '';
+                return backgroundsBaseUrl + bg.value.replace(/^backgrounds\//, '');
+            }
+
+            function applyToEditor(bg) {
+                if (!bg) return;
+                editorContainer.classList.add('post-bg-active');
+                if (bg.type === 'color') {
+                    editorContainer.style.backgroundImage = 'none';
+                    editorContainer.style.backgroundColor = bg.value;
+                } else {
+                    editorContainer.style.backgroundColor = '';
+                    editorContainer.style.backgroundImage = 'url(' + bgToUrl(bg) + ')';
+                    editorContainer.style.backgroundSize = 'cover';
+                    editorContainer.style.backgroundPosition = 'center';
+                    editorContainer.style.backgroundRepeat = 'no-repeat';
+                }
+            }
+
+            function updateToolbarButtonIcon(swatchEl, bg) {
+                swatchEl.style.backgroundColor = '';
+                swatchEl.style.backgroundImage = '';
+                swatchEl.style.backgroundSize = '';
+                swatchEl.style.backgroundPosition = '';
+                swatchEl.style.backgroundRepeat = '';
+                if (!bg) {
+                    swatchEl.style.backgroundColor = '#e8e6e3';
+                    return;
+                }
+                if (bg.type === 'color') {
+                    swatchEl.style.backgroundColor = bg.value;
+                    swatchEl.style.backgroundImage = 'none';
+                } else {
+                    swatchEl.style.backgroundColor = 'transparent';
+                    swatchEl.style.backgroundImage = 'url(' + bgToUrl(bg) + ')';
+                    swatchEl.style.backgroundSize = 'cover';
+                    swatchEl.style.backgroundPosition = 'center';
+                    swatchEl.style.backgroundRepeat = 'no-repeat';
+                }
+            }
+
+            var btnFormat = document.createElement('span');
+            btnFormat.className = 'ql-formats';
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ql-post-bg-picker';
+            btn.setAttribute('aria-label', 'Post background');
+            var swatch = document.createElement('span');
+            swatch.className = 'ql-post-bg-picker-swatch';
+            swatch.setAttribute('aria-hidden', 'true');
+            btn.appendChild(swatch);
+            btnFormat.appendChild(btn);
+            toolbar.appendChild(btnFormat);
+
+            var popover = document.createElement('div');
+            popover.className = 'ql-post-bg-popover ql-post-bg-popover--wide';
+            popover.style.display = 'none';
+            toolbar.appendChild(popover);
+
+            var html = '';
+            html += '<div class="ql-post-bg-section ql-post-bg-section-custom ql-post-bg-section-custom-color">';
+            html += '<div class="post-bg-color-picker-mount"></div></div>';
+            html += '<div class="ql-post-bg-section">';
+            html += '<div class="ql-post-bg-section-label">Background images</div>';
+            html += '<div class="ql-post-bg-grid ql-post-bg-grid-images"></div></div>';
+            popover.innerHTML = html;
+
+            function setActiveItem(activeEl) {
+                popover.querySelectorAll('.ql-post-bg-item').forEach(function(el) {
+                    el.classList.remove('ql-post-bg-active');
+                });
+                if (activeEl) activeEl.classList.add('ql-post-bg-active');
+            }
+
+            var mount = popover.querySelector('.post-bg-color-picker-mount');
+            var popImageGrid = popover.querySelector('.ql-post-bg-grid-images');
+
+            colorPickerApi = createPostBgColorPicker(mount, {
+                initialHex: currentBg.value,
+                onChange: function(hex) {
+                    var bg = { type: 'color', value: hex };
+                    currentBg = bg;
+                    setHidden(bg);
+                    updateToolbarButtonIcon(swatch, bg);
+                    applyToEditor(bg);
+                    setActiveItem(null);
+                }
+            });
+
+            (backgroundImages || []).forEach(function(filename) {
+                var item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'ql-post-bg-item';
+                item.setAttribute('data-bg-type', 'image');
+                item.setAttribute('data-bg-value', 'backgrounds/' + filename);
+
+                var url = backgroundsBaseUrl + filename;
+                item.style.backgroundImage = 'url(' + url + ')';
+                item.style.backgroundSize = 'cover';
+                item.style.backgroundPosition = 'center';
+
+                item.addEventListener('click', function() {
+                    var bg = { type: 'image', value: 'backgrounds/' + filename };
+                    currentBg = bg;
+                    setHidden(bg);
+                    updateToolbarButtonIcon(swatch, bg);
+                    applyToEditor(bg);
+                    setActiveItem(item);
+                    popover.style.display = 'none';
+                });
+                popImageGrid.appendChild(item);
+            });
+
+            var popoverReposRaf = 0;
+            var popoverScrollResizeBound = false;
+
+            function positionPopoverUnderBtn() {
+                var rect = btn.getBoundingClientRect();
+                var gap = 6;
+                var pad = 10;
+                var top = rect.bottom + gap;
+                var left = rect.left;
+                popover.style.position = 'fixed';
+                popover.style.top = Math.round(top) + 'px';
+                popover.style.right = 'auto';
+                popover.style.bottom = 'auto';
+                var w = popover.offsetWidth;
+                if (!w) w = 280;
+                if (left + w > window.innerWidth - pad) {
+                    left = Math.max(pad, window.innerWidth - pad - w);
+                }
+                if (left < pad) left = pad;
+                popover.style.left = Math.round(left) + 'px';
+            }
+
+            function scheduleRepositionPopover() {
+                if (popover.style.display === 'none') return;
+                if (popoverReposRaf) cancelAnimationFrame(popoverReposRaf);
+                popoverReposRaf = requestAnimationFrame(function() {
+                    popoverReposRaf = 0;
+                    positionPopoverUnderBtn();
+                });
+            }
+
+            function bindPopoverReposition() {
+                if (popoverScrollResizeBound) return;
+                popoverScrollResizeBound = true;
+                window.addEventListener('scroll', scheduleRepositionPopover, true);
+                window.addEventListener('resize', scheduleRepositionPopover);
+            }
+
+            function unbindPopoverReposition() {
+                if (!popoverScrollResizeBound) return;
+                popoverScrollResizeBound = false;
+                window.removeEventListener('scroll', scheduleRepositionPopover, true);
+                window.removeEventListener('resize', scheduleRepositionPopover);
+                if (popoverReposRaf) {
+                    cancelAnimationFrame(popoverReposRaf);
+                    popoverReposRaf = 0;
+                }
+            }
+
+            function openPopover() {
+                popover.style.display = 'block';
+                bindPopoverReposition();
+                requestAnimationFrame(function() {
+                    positionPopoverUnderBtn();
+                    if (colorPickerApi && currentBg.type === 'color') {
+                        colorPickerApi.setHex(currentBg.value, true);
+                    }
+                    requestAnimationFrame(positionPopoverUnderBtn);
+                });
+            }
+
+            function closePopover() {
+                popover.style.display = 'none';
+                unbindPopoverReposition();
+            }
+
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (popover.style.display === 'none') openPopover(); else closePopover();
+            });
+
+            document.addEventListener('click', function(e) {
+                /* Клик по свотчу внутри кнопки: e.target — не btn, иначе попап закрывался в том же тике */
+                if (!popover.contains(e.target) && !btn.contains(e.target)) closePopover();
+            });
+
+            setHidden(currentBg);
+            updateToolbarButtonIcon(swatch, currentBg);
+            applyToEditor(currentBg);
+
+            window.hexgraphEditorRestoreBackground = function() {
+                try {
+                    var raw = hiddenInput.value || '{"type":"color","value":"#ffffff"}';
+                    var bg = JSON.parse(raw);
+                    if (!bg || !bg.type) bg = { type: 'color', value: '#ffffff' };
+                    currentBg = bg;
+                    setHidden(bg);
+                    updateToolbarButtonIcon(swatch, bg);
+                    applyToEditor(bg);
+                    if (colorPickerApi && bg.type === 'color') {
+                        colorPickerApi.setHex(bg.value, true);
+                    }
+                    setActiveItem(null);
+                } catch (err) {}
+            };
+        })();
+
+        /* После всех кастомных кнопок в toolbar — оболочка редактора и кнопка предпросмотра */
+        (function mountCreatePostButton() {
+            if (document.querySelector('.editor-shell')) return;
+            var ec = document.getElementById('editor-container');
+            var toolbarEl = document.querySelector('form .ql-toolbar');
+            if (!ec || !toolbarEl || toolbarEl.parentNode !== ec.parentNode) return;
+            var parent = ec.parentNode;
+            var shell = document.createElement('div');
+            shell.className = 'editor-shell';
+            parent.insertBefore(shell, toolbarEl);
+            var submitWrap = document.createElement('span');
+            submitWrap.className = 'ql-formats ql-formats--create-post';
+            submitWrap.setAttribute('aria-label', 'Создать открытку');
+            var submitBtn = document.createElement('button');
+            submitBtn.type = 'button';
+            submitBtn.id = 'create-post-submit';
+            submitBtn.className = 'editor-submit-btn';
+            submitBtn.textContent = 'Создать открытку';
+            submitBtn.setAttribute('aria-label', 'Создать открытку и открыть предпросмотр');
+            submitBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var ta = document.getElementById('content');
+                if (ta) ta.value = quill.root.innerHTML;
+                var f = document.getElementById('editor-main-form') || document.querySelector('main.editor-create form');
+                if (!f) return;
+                f.action = '{{ url_for("preview_post") }}';
+                f.method = 'post';
+                f.submit();
+            });
+            submitWrap.appendChild(submitBtn);
+            toolbarEl.appendChild(submitWrap);
+            shell.appendChild(toolbarEl);
+            shell.appendChild(ec);
+
+            /* Две логические части: центрируемый tools-блок + отдельная «Создать открытку» справа */
+            (function splitToolbarLayout(tb) {
+                if (!tb || tb.getAttribute('data-toolbar-split') === '1') return;
+                var popover = tb.querySelector(':scope > .ql-post-bg-popover');
+                var createWrap = tb.querySelector(':scope > .ql-formats--create-post');
+                var groups = Array.prototype.slice.call(tb.querySelectorAll(':scope > .ql-formats'));
+                if (!groups.length) return;
+
+                var toolsWrap = document.createElement('div');
+                toolsWrap.className = 'ql-toolbar-tools';
+                var toolsFrag = document.createDocumentFragment();
+
+                groups.forEach(function(fmt) {
+                    if (fmt === createWrap) return;
+                    while (fmt.firstChild) toolsFrag.appendChild(fmt.firstChild);
+                    fmt.remove();
+                });
+
+                toolsWrap.appendChild(toolsFrag);
+                tb.insertBefore(toolsWrap, createWrap || popover || null);
+                if (createWrap) tb.appendChild(createWrap);
+                if (popover) tb.appendChild(popover);
+
+                tb.setAttribute('data-toolbar-split', '1');
+            })(toolbarEl);
+        })();
+
+        (function restoreEditorFromServer() {
+            var el = document.getElementById('editor-restore-json');
+            if (!el || !el.textContent.trim()) return;
+            try {
+                var data = JSON.parse(el.textContent);
+                quill.root.innerHTML = data.content || '';
+                var hi = document.getElementById('background_value');
+                if (hi && data.background_value != null) hi.value = data.background_value;
+                if (typeof window.hexgraphEditorRestoreBackground === 'function') {
+                    window.hexgraphEditorRestoreBackground();
+                }
+                var titleEl = document.getElementById('post-title');
+                if (titleEl && data.title != null) titleEl.value = data.title;
+            } catch (err) {}
+        })();
+    </script>
+</body>
+</html>

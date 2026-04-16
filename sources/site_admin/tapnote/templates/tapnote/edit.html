@@ -1,0 +1,28 @@
+{% extends "tapnote/base.html" %}
+
+{% block title %}Edit note — TapNote{% endblock %}
+
+{% block content %}
+<div class="w-full px-4">
+  <div class="mx-auto" style="max-width: 720px;">
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <input type="hidden" name="token" value="{{ token }}">
+      {% if error %}
+        <div class="text-xs text-red-600">{{ error }}</div>
+      {% endif %}
+      <textarea name="content"
+                rows="12"
+                class="w-full border-none bg-transparent text-sm leading-relaxed"
+                placeholder="write in markdown">{{ content }}</textarea>
+      <div class="flex justify-end">
+        <button type="submit"
+                class="px-5 py-1.5 rounded-full border border-black text-xs uppercase tracking-[0.14em] bg-white">
+          Save
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

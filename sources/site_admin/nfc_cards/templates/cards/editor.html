@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Создание открытки{% endblock %}
+
+{% block content %}
+<div class="py-10">
+  <div class="max-w-3xl mx-auto px-4">
+    <!-- Верхняя панель как в Telegraph -->
+    <div class="flex justify-between items-start mb-6">
+      <div class="text-[11px] text-gray-400">
+        Token: <span class="font-mono">{{ card.token }}</span>
+      </div>
+      <button form="card-form"
+              type="submit"
+              name="publish"
+              value="1"
+              class="px-5 py-1.5 border border-gray-900 rounded-full text-[11px] tracking-[0.14em] uppercase bg-white hover:bg-gray-900 hover:text-white transition">
+        Publish
+      </button>
+    </div>
+
+    <form id="card-form" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div class="mx-auto" style="max-width: 720px;">
+        <!-- Title -->
+        <div class="mb-4">
+          {{ form.title }}
+        </div>
+
+        <!-- Your name -->
+        <div class="mb-2">
+          {{ form.author_name }}
+        </div>
+
+        <!-- Your story... с мелкой панелью слева -->
+        <div class="mt-6 flex">
+          <div class="w-8 pt-1 text-center text-gray-500 text-xs select-none">
+            &lt;&gt; &nbsp; 📷
+          </div>
+          <div class="flex-1">
+            {{ form.content }}
+          </div>
+        </div>
+
+        <!-- Низ: пока только поля файлов и ссылок (без цветов и доп. логики) -->
+        <div class="mt-6 space-y-3 text-xs text-gray-700">
+          <div>
+            <label class="block font-medium mb-1">Фото</label>
+            {{ media_form.photos }}
+          </div>
+          <div>
+            <label class="block font-medium mb-1">Видео</label>
+            {{ media_form.videos }}
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+

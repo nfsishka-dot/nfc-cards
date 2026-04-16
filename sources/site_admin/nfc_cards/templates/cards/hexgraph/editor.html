@@ -1,0 +1,1821 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru" class="page-editor-html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>НФСишка</title>
+    <link rel="stylesheet" href="{% static 'hexgraph/css/color-picker.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'hexgraph/css/styles.css' %}?v=20260415-9">
+    <link rel="stylesheet" href="{% static 'hexgraph/css/fonts.css' %}?v=20260415-1">
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script src="{% static 'hexgraph/js/colorPicker.js' %}"></script>
+    <script src="{% static 'hexgraph/js/editor.js' %}?v=20260415-1"></script>
+    <script src="{% static 'hexgraph/js/editorHelpModal.js' %}?v=20260413-7"></script>
+</head>
+<body class="page-editor">
+    <div id="hg-welcome" class="hg-welcome" role="dialog" aria-modal="true" aria-labelledby="hg-welcome-title">
+        <div class="hg-welcome__dialog">
+            <div class="hg-welcome__scroll">
+                <p class="hg-welcome__brand">НФСишка</p>
+                <h2 id="hg-welcome-title" class="hg-welcome__title">Создайте открытку</h2>
+                <p class="hg-welcome__text">
+                    Она откроется, когда человек коснётся брелка — сразу в браузере, без приложений. Внизу можно посмотреть, как открытка будет выглядеть.
+                </p>
+                <ul class="hg-welcome__list">
+                    <li>Напишите текст и оформите его как хотите</li>
+                    <li>Добавьте фото и расположите их в тексте</li>
+                    <li>Меняйте шрифты, размер и выравнивание. Выберите фон, чтобы задать стиль</li>
+                </ul>
+                <div class="hg-welcome__notice" role="note">
+                    <strong>Можно вернуться и всё изменить перед публикацией</strong>
+                    После публикации редактировать уже нельзя.
+                </div>
+            </div>
+            <div class="hg-welcome__footer hg-welcome__footer--single">
+                <button type="button" class="hg-welcome__btn hg-welcome__btn--primary" id="hg-welcome-dismiss">Начать</button>
+            </div>
+        </div>
+    </div>
+    <main class="editor-create">
+        <h2 class="editor-page-title">Создание открытки</h2>
+        {% if messages %}
+        {% for message in messages %}
+        <p style="color:#b91c1c;font-size:0.875rem;margin:0.25rem 0 0.75rem;text-align:center" role="alert">{{ message }}</p>
+        {% endfor %}
+        {% endif %}
+        <div class="editor-autosave-bar" id="editor-autosave-bar">
+            <p class="editor-autosave-status" id="editor-autosave-status" role="status" aria-live="polite"></p>
+            <span class="editor-autosave-actions" id="editor-autosave-actions"></span>
+        </div>
+        <section class="editor-intro" aria-label="Подсказки">
+            <div class="editor-intro__body">
+                <h3 class="editor-intro__title">Создайте открытку</h3>
+                <p class="editor-intro__lede">Напишите тёплые слова, добавьте фото и выберите настроение — занимает пару минут.</p>
+            </div>
+            <div class="editor-intro__steps" role="list" aria-label="Шаги">
+                <div class="editor-intro__step" role="listitem">
+                    <span class="editor-intro__step-num" aria-hidden="true">1</span>
+                    <span class="editor-intro__step-label">Напишите текст</span>
+                </div>
+                <span class="editor-intro__step-arrow" aria-hidden="true"></span>
+                <div class="editor-intro__step" role="listitem">
+                    <span class="editor-intro__step-num" aria-hidden="true">2</span>
+                    <span class="editor-intro__step-label">Добавьте фото</span>
+                </div>
+                <span class="editor-intro__step-arrow" aria-hidden="true"></span>
+                <div class="editor-intro__step" role="listitem">
+                    <span class="editor-intro__step-num" aria-hidden="true">3</span>
+                    <span class="editor-intro__step-label">Задайте стиль</span>
+                </div>
+            </div>
+        </section>
+        <div class="editor-draft-recover" id="editor-draft-recover" hidden role="region" aria-label="Локальная копия черновика">
+            <p class="editor-draft-recover__text">Найдены несохранённые изменения. Восстановить?</p>
+            <div class="editor-draft-recover__actions">
+                <button type="button" class="editor-draft-recover__btn editor-draft-recover__btn--primary" id="editor-draft-recover-yes">Восстановить</button>
+                <button type="button" class="editor-draft-recover__btn" id="editor-draft-recover-no">Игнорировать</button>
+            </div>
+        </div>
+        <form id="editor-main-form" action="{% url 'card_preview' token=card.token %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="title" id="post-title" value="{{ card.title|default:'' }}">
+            <div id="editor-container"></div>
+            <textarea id="content" name="content" style="display:none;"></textarea>
+            <input type="hidden" id="background_value" name="background_value" value="{{ editor_restore.background_value|escape }}">
+        </form>
+        {{ editor_restore|json_script:"editor-restore-json" }}
+    </main>
+    <script>
+        var allFonts = [
+            { value: 'sans-serif', label: 'Purity' },
+            { value: 'serif', label: 'Romano' },
+            { value: 'abram', label: 'Nobles' },
+            { value: 'grace', label: 'Gracia' },
+            { value: 'monospace', label: 'Monoline' },
+            { value: 'fsansa', label: 'Neosan' },
+            { value: 'lorenco', label: 'Sorana' },
+            { value: 'fdispa', label: 'Axisa' },
+            { value: 'fscripta', label: 'Lunara' },
+            { value: 'capuletty', label: 'Musette' },
+            { value: 'fdispb', label: 'Bolden' },
+            { value: 'fdispc', label: 'Primor' },
+            { value: 'fdispd', label: 'Framed' },
+            { value: 'fdispe', label: 'Voguee' },
+            { value: 'fdispg', label: 'Fluxor' },
+            { value: 'fdispf', label: 'Iconic' },
+            { value: 'fdisph', label: 'Aerion' },
+            { value: 'fdispi', label: 'Echoes' }
+        ];
+        var fontListToolbar = allFonts.slice(0, 3).map(function(f) { return f.value; });
+        var customFonts = allFonts.slice(3);
+        var fontListWhitelist = allFonts.map(function(f) { return f.value; });
+        var backgroundsBaseUrl = '{% static "hexgraph/backgrounds/" %}';
+        var BG_HEX_PREFIX = 'hexgraph/backgrounds/';
+        function bgStaticUrl(hexPath) {
+            if (!hexPath) return '';
+            var rest = hexPath.indexOf(BG_HEX_PREFIX) === 0 ? hexPath.slice(BG_HEX_PREFIX.length) : String(hexPath).replace(/^[\\/]+/, '');
+            return backgroundsBaseUrl + rest;
+        }
+        var backgroundImages = (function() {
+            try {
+                var raw = JSON.parse('{{ background_images_json|escapejs }}');
+            } catch (e) {
+                return [];
+            }
+            if (!Array.isArray(raw)) return [];
+            return raw.map(function(entry) {
+                if (typeof entry === 'string') {
+                    var f = entry.indexOf(BG_HEX_PREFIX) === 0 ? entry : (BG_HEX_PREFIX + entry.replace(/^[\\/]+/, ''));
+                    return { full: f, thumb: f };
+                }
+                var full = entry.full || '';
+                var thumb = entry.thumb || full;
+                if (full && full.indexOf(BG_HEX_PREFIX) !== 0) {
+                    full = BG_HEX_PREFIX + String(full).replace(/^[\\/]+/, '');
+                }
+                if (thumb && thumb.indexOf(BG_HEX_PREFIX) !== 0) {
+                    thumb = BG_HEX_PREFIX + String(thumb).replace(/^[\\/]+/, '');
+                }
+                return { full: full, thumb: thumb || full };
+            }).filter(function(x) { return x.full; });
+        })();
+        var patternsBaseUrl = '{% static "hexgraph/patterns/" %}';
+        var Font = Quill.import('attributors/class/font') || Quill.import('attributors/style/font') || Quill.import('formats/font');
+        if (Font && Font.whitelist !== undefined) {
+            Font.whitelist = fontListWhitelist;
+            Quill.register(Font, true);
+        }
+
+        /* Quill BaseTheme: для background дефолт был #ffffff → клик по белому не вызывал change (Picker.selectItem: item===selected). false = «Прозрачный», #ffffff = реальная белая подсветка. */
+        var quillToolbarBgColors = [false].concat([
+            '#000000', '#e60000', '#ff9900', '#ffff00', '#008a00', '#0066cc', '#9933ff', '#ffffff',
+            '#facccc', '#ffebcc', '#ffffcc', '#cce8cc', '#cce0f5', '#ebd6ff', '#bbbbbb',
+            '#f06666', '#ffc266', '#ffff66', '#66b966', '#66a3e0', '#c285ff', '#888888',
+            '#a10000', '#b26b00', '#b2b200', '#006100', '#0047b2', '#6b24b2', '#444444',
+            '#5c0000', '#663d00', '#666600', '#003700', '#002966', '#3d1466'
+        ]);
+
+        var quill = new Quill('#editor-container', {
+            theme: 'snow',
+            placeholder: 'Напишите текст открытки…',
+            modules: {
+                toolbar: [
+                    [{ 'font': fontListToolbar }, { 'header': [1, 2, 3, 4, 5, false] }],
+                    [{ 'align': [] }, { 'list': 'bullet' }],
+                    ['bold', 'italic', 'underline'],
+                    ['image', 'link'],
+                    [{ 'color': [] }, { 'background': quillToolbarBgColors }],
+                    ['clean'],
+                ]
+            }
+        });
+
+        (function setupBackgroundHighlightPickerUi() {
+            var root = document.querySelector('.ql-toolbar .ql-background');
+            if (!root) return;
+            function isClearBgPickerItem(el) {
+                if (!el.hasAttribute('data-value')) return true;
+                var v = el.getAttribute('data-value');
+                return v === '' || v === 'false';
+            }
+            function mark() {
+                root.querySelectorAll('.ql-picker-item').forEach(function(el) {
+                    if (isClearBgPickerItem(el)) {
+                        el.classList.add('hg-ql-bg-clear');
+                        el.setAttribute('title', 'Прозрачный');
+                        el.setAttribute('aria-label', 'Прозрачный');
+                    } else if (el.getAttribute('data-value') === '#ffffff') {
+                        el.setAttribute('title', 'Белый');
+                        el.setAttribute('aria-label', 'Белый');
+                    }
+                });
+            }
+            mark();
+            var opts = root.querySelector('.ql-picker-options');
+            if (opts) {
+                var mo = new MutationObserver(function() { mark(); });
+                mo.observe(opts, { childList: true, subtree: true });
+            }
+        })();
+
+        function hexgraphIsQuillImageBlot(blot) {
+            return !!(blot && blot.statics && blot.statics.blotName === 'image');
+        }
+
+        /** Пустая строка после embed и каретка под изображением (DOM: img в .ql-editor). */
+        function ensureCaretAfterEditorImage(quill, imgEl) {
+            try {
+                var blot = Quill.find(imgEl, true);
+                if (!blot || blot.scroll !== quill.scroll || !hexgraphIsQuillImageBlot(blot)) return false;
+                var ix = quill.getIndex(blot) + 1;
+                if (ix >= quill.getLength() || quill.getText(ix, 1) !== '\n') {
+                    quill.insertText(ix, '\n', 'user');
+                }
+                quill.setSelection(ix + 1, 0, 'user');
+                quill.focus();
+                return true;
+            } catch (_e) {
+                return false;
+            }
+        }
+
+        (function setupQuillImageUpload() {
+            var uploadUrl = '{% url "card_upload_image" token=card.token %}';
+            function getCsrfToken() {
+                var name = 'csrftoken';
+                var parts = document.cookie.split(';');
+                for (var i = 0; i < parts.length; i++) {
+                    var c = parts[i].trim();
+                    if (c.indexOf(name + '=') === 0) {
+                        return decodeURIComponent(c.substring(name.length + 1));
+                    }
+                }
+                return '';
+            }
+
+            function setTransientStatus(text) {
+                var el = document.getElementById('editor-autosave-status');
+                if (!el) return function() {};
+                var prevText = el.textContent;
+                var prevState = el.getAttribute('data-state');
+                el.textContent = text || '';
+                el.setAttribute('data-state', 'saving');
+                return function restore() {
+                    el.textContent = prevText || '';
+                    if (prevState) el.setAttribute('data-state', prevState);
+                    else el.removeAttribute('data-state');
+                };
+            }
+
+            /* ---------------------------------------------------------------
+             *  CLIENT-SIDE IMAGE COMPRESSION
+             *  Запускается перед upload, если файл > CLIENT_MAX_BYTES.
+             *  PNG с альфой остаётся PNG; остальное → JPEG для экономии.
+             *  Возвращает Promise<File> — сжатый файл или исходный.
+             * ------------------------------------------------------------- */
+            var CLIENT_MAX_BYTES = 3 * 1024 * 1024; // 3MB — порог перед сжатием
+            var CLIENT_MAX_EDGE = 1920;              // px по длинной стороне
+            var JPEG_QUALITY = 0.82;
+            var PNG_QUALITY = 0.85;                  // используется как max_quality hint
+
+            function compressImageOnClient(file) {
+                // Не трогаем GIF и WebP (сложные форматы), и маленькие файлы
+                var isCompressible = /^image\/(png|jpeg|jpg)$/i.test(file.type);
+                if (!isCompressible || file.size <= CLIENT_MAX_BYTES) {
+                    return Promise.resolve(file);
+                }
+
+                return new Promise(function(resolve) {
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        var img = new Image();
+                        img.onload = function() {
+                            var w = img.naturalWidth;
+                            var h = img.naturalHeight;
+                            // Уменьшаем, если превышает max edge
+                            if (w > CLIENT_MAX_EDGE || h > CLIENT_MAX_EDGE) {
+                                var ratio = Math.min(CLIENT_MAX_EDGE / w, CLIENT_MAX_EDGE / h);
+                                w = Math.round(w * ratio);
+                                h = Math.round(h * ratio);
+                            }
+
+                            var canvas = document.createElement('canvas');
+                            canvas.width = w;
+                            canvas.height = h;
+                            var ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+
+                            // PNG с прозрачностью — оставляем PNG
+                            var isPngWithAlpha = (file.type === 'image/png') && _canvasHasAlpha(ctx, w, h);
+                            var outMime = isPngWithAlpha ? 'image/png' : 'image/jpeg';
+                            var outQ = isPngWithAlpha ? PNG_QUALITY : JPEG_QUALITY;
+                            var ext = isPngWithAlpha ? '.png' : '.jpg';
+
+                            canvas.toBlob(function(blob) {
+                                if (!blob) {
+                                    // Если canvas.toBlob не сработал — отдаём оригинал
+                                    resolve(file);
+                                    return;
+                                }
+                                var baseName = (file.name || 'image').replace(/\.[^.]+$/, '');
+                                var compressed = new File([blob], baseName + ext, { type: outMime, lastModified: Date.now() });
+                                // Если почему-то сжали больше — отдаём оригинал
+                                resolve(compressed.size < file.size ? compressed : file);
+                            }, outMime, outQ);
+                        };
+                        img.onerror = function() { resolve(file); };
+                        img.src = ev.target.result;
+                    };
+                    reader.onerror = function() { resolve(file); };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            function _canvasHasAlpha(ctx, w, h) {
+                // Проверяем угловые пиксели, чтобы не читать весь canvas
+                try {
+                    var samples = [
+                        ctx.getImageData(0, 0, 1, 1),
+                        ctx.getImageData(w - 1, 0, 1, 1),
+                        ctx.getImageData(0, h - 1, 1, 1),
+                        ctx.getImageData(w - 1, h - 1, 1, 1),
+                        ctx.getImageData(Math.floor(w / 2), Math.floor(h / 2), 1, 1)
+                    ];
+                    for (var i = 0; i < samples.length; i++) {
+                        if (samples[i].data[3] < 255) return true;
+                    }
+                } catch (e) { return true; } // при ошибке сохраняем PNG
+                return false;
+            }
+
+            function uploadImageFile(file) {
+                // Сначала пробуем сжать на клиенте, потом отправляем
+                return compressImageOnClient(file).then(function(toUpload) {
+                    var fd = new FormData();
+                    fd.append('file', toUpload);
+                    return fetch(uploadUrl, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': getCsrfToken() },
+                        body: fd,
+                        credentials: 'same-origin'
+                    }).then(function(r) {
+                        var ct = (r.headers && r.headers.get) ? (r.headers.get('content-type') || '') : '';
+                        if (ct.indexOf('application/json') !== -1) {
+                            return r.json().then(function(data) {
+                                if (!r.ok) throw data || {};
+                                return data;
+                            });
+                        }
+                        return r.text().then(function(txt) {
+                            var err = { error: r.status === 413 ? 'file_too_large' : 'upload_failed', message: (txt || '').slice(0, 300) };
+                            if (!r.ok) throw err;
+                            return err;
+                        });
+                    });
+                });
+            }
+
+            function insertPersistedImage(url, isPng) {
+                if (!url) return;
+                var range = quill.getSelection(true);
+                if (!range) range = { index: Math.max(0, quill.getLength() - 1), length: 0 };
+                if (range.length > 0) quill.deleteText(range.index, range.length, 'user');
+                var ix = range.index;
+                quill.insertEmbed(ix, 'image', url, 'user');
+                quill.insertText(ix + 1, '\n', 'user');
+                var caret = ix + 2;
+                quill.setSelection(caret, 0, 'user');
+                quill.focus();
+                requestAnimationFrame(function() {
+                    var imgs = quill.root ? quill.root.querySelectorAll('img') : [];
+                    var img = imgs && imgs.length ? imgs[imgs.length - 1] : null;
+                    if (img && isPng) img.classList.add('hg-img--png');
+                });
+            }
+
+            function humanUploadError(err) {
+                var code = err && (err.error || err.code);
+                if (code === 'file_too_large') return 'Изображение слишком большое.';
+                if (code === 'unsupported_format') return 'Формат изображения не поддерживается.';
+                if (code === 'invalid_image') return 'Файл повреждён или не является изображением.';
+                if (code === 'invalid_upload') return 'Не удалось прочитать загрузку. Попробуйте ещё раз.';
+                if (code === 'processing_failed') return 'PNG не удалось обработать. Попробуйте другое изображение.';
+                if (code === 'card_too_large') return 'Превышен общий лимит 50 МБ для открытки.';
+                if (code === 'rate_limited') return 'Слишком много запросов. Подождите минуту и попробуйте снова.';
+                if (err && err.message) return err.message;
+                return 'Не удалось загрузить изображение. Попробуйте ещё раз.';
+            }
+
+            quill.getModule('toolbar').addHandler('image', function() {
+                var input = document.createElement('input');
+                input.setAttribute('type', 'file');
+                input.setAttribute('accept', 'image/*');
+                input.click();
+                input.onchange = function() {
+                    var file = input.files && input.files[0];
+                    if (!file) return;
+                    // isPng проверяем до сжатия — сжатие может конвертировать в JPEG
+                    var origIsPng = (file.type === 'image/png') || /\.png$/i.test(file.name || '');
+                    var restore = setTransientStatus('Загрузка изображения…');
+                    uploadImageFile(file).then(function(data) {
+                        restore();
+                        if (!data || !data.url) return;
+                        // Если URL указывает на .png или оригинал был PNG с альфой — метим класс
+                        var finalIsPng = origIsPng || /\.png(\?|$)/i.test(data.url);
+                        insertPersistedImage(data.url, finalIsPng);
+                    }).catch(function(err) {
+                        restore();
+                        alert(humanUploadError(err));
+                    });
+                };
+            });
+
+            // Paste/drop: единый persist-flow (никаких data:/blob: в HTML)
+            function handleIncomingFiles(filesLike) {
+                var files = Array.prototype.slice.call(filesLike || []).filter(function(f) {
+                    return f && f.type && String(f.type).indexOf('image/') === 0;
+                });
+                if (!files.length) return false;
+
+                (function run(i) {
+                    if (i >= files.length) return;
+                    var file = files[i];
+                    var origIsPng = file.type === 'image/png' || /\.png$/i.test(file.name || '');
+                    var restore = setTransientStatus('Загрузка изображения…');
+                    uploadImageFile(file).then(function(data) {
+                        restore();
+                        if (data && data.url) {
+                            var finalIsPng = origIsPng || /\.png(\?|$)/i.test(data.url);
+                            insertPersistedImage(data.url, finalIsPng);
+                        }
+                        run(i + 1);
+                    }).catch(function(err) {
+                        restore();
+                        alert(humanUploadError(err));
+                    });
+                })(0);
+
+                return true;
+            }
+
+            quill.root.addEventListener('paste', function(e) {
+                var cd = e.clipboardData;
+                if (!cd) return;
+
+                // 1) Если в буфере есть image/* — загружаем как файл и вставляем URL.
+                if (cd.files && cd.files.length) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleIncomingFiles(cd.files);
+                    return;
+                }
+                if (cd.items && cd.items.length) {
+                    var imgFiles = [];
+                    for (var i = 0; i < cd.items.length; i++) {
+                        var it = cd.items[i];
+                        if (it && it.kind === 'file' && it.type && String(it.type).indexOf('image/') === 0) {
+                            var f = it.getAsFile && it.getAsFile();
+                            if (f) imgFiles.push(f);
+                        }
+                    }
+                    if (imgFiles.length) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleIncomingFiles(imgFiles);
+                        return;
+                    }
+                }
+
+                // 2) Если в HTML есть data:/blob: — блокируем, чтобы не раздувать контент.
+                var html = cd.getData && (cd.getData('text/html') || '');
+                if (html && (/data:image\\//i.test(html) || /blob:/i.test(html))) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    alert('Картинка из буфера должна быть загружена как файл. Попробуйте вставить ещё раз — редактор сам загрузит изображение.');
+                }
+            }, true);
+
+            quill.root.addEventListener('drop', function(e) {
+                var dt = e.dataTransfer;
+                if (!dt || !dt.files || !dt.files.length) return;
+                var hasImg = Array.prototype.some.call(dt.files, function(f) { return f && f.type && String(f.type).indexOf('image/') === 0; });
+                if (!hasImg) return;
+                e.preventDefault();
+                e.stopPropagation();
+                handleIncomingFiles(dt.files);
+            }, true);
+        })();
+
+        (function setupToolbarSelectionPreservation(quill) {
+            function getToolbar() {
+                return document.querySelector('form .ql-toolbar') ||
+                    document.querySelector('.editor-shell .ql-toolbar') ||
+                    document.querySelector('#editor-container .ql-toolbar') ||
+                    document.querySelector('.ql-toolbar');
+            }
+            var toolbar = getToolbar();
+            if (!toolbar || !quill) return;
+
+            function shouldSaveSelectionTarget(t) {
+                if (!t || !toolbar.contains(t)) return false;
+                if (t.closest && t.closest('.ql-post-help')) return false;
+                if (t.closest && t.closest('.hg-help-modal')) return false;
+                if (t.closest('.ql-toolbar-tools button')) return true;
+                if (t.closest('.ql-picker-label')) return true;
+                if (t.closest('.ql-picker-item')) return true;
+                if (t.closest('.ql-post-bg-picker')) return true;
+                if (t.closest('.ql-post-bg-popover')) return true;
+                return false;
+            }
+
+            function shouldPreventDefaultOnMousedown(t) {
+                if (!shouldSaveSelectionTarget(t)) return false;
+                if (t.closest('.ql-post-bg-popover') && !t.closest('.ql-post-bg-picker')) return false;
+                return true;
+            }
+
+            function saveRange() {
+                var sel = quill.getSelection();
+                if (sel && typeof sel.index === 'number') {
+                    toolbar._hgToolbarSel = { index: sel.index, length: sel.length || 0 };
+                }
+            }
+
+            function restoreRange() {
+                var r = toolbar._hgToolbarSel;
+                if (!r) return;
+                toolbar._hgToolbarSel = null;
+                var len = quill.getLength();
+                var idx = Math.max(0, Math.min(r.index, Math.max(0, len - 1)));
+                var L = r.length > 0 ? r.length : 0;
+                try {
+                    quill.setSelection(idx, L, 'user');
+                    quill.focus();
+                } catch (_e) {}
+            }
+
+            toolbar.addEventListener('mousedown', function(e) {
+                if (e.button !== 0) return;
+                if (!shouldSaveSelectionTarget(e.target)) return;
+                saveRange();
+                if (shouldPreventDefaultOnMousedown(e.target)) {
+                    e.preventDefault();
+                }
+            }, true);
+
+            toolbar.addEventListener('click', function(e) {
+                if (!shouldSaveSelectionTarget(e.target)) return;
+                if (!toolbar._hgToolbarSel) return;
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(restoreRange);
+                });
+            }, true);
+
+            toolbar.addEventListener('touchstart', function(e) {
+                if (!shouldSaveSelectionTarget(e.target)) return;
+                saveRange();
+            }, { capture: true, passive: true });
+
+            toolbar.addEventListener('touchend', function(e) {
+                if (!shouldSaveSelectionTarget(e.target)) return;
+                if (!toolbar._hgToolbarSel) return;
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(restoreRange);
+                });
+            }, { capture: true, passive: true });
+        })(quill);
+
+        (function setupMobileCaretFromPoint(quill) {
+            var editor = document.querySelector('#editor-container .ql-editor');
+            if (!editor) return;
+
+            var touchStart = null;
+
+            function placeCaretAtClientPoint(clientX, clientY) {
+                var root = quill.root;
+                var nativeRange = null;
+                if (document.caretRangeFromPoint) {
+                    try {
+                        nativeRange = document.caretRangeFromPoint(clientX, clientY);
+                    } catch (err) {
+                        nativeRange = null;
+                    }
+                }
+                if (!nativeRange && document.caretPositionFromPoint) {
+                    try {
+                        var pos = document.caretPositionFromPoint(clientX, clientY);
+                        if (pos && pos.offsetNode && root.contains(pos.offsetNode)) {
+                            nativeRange = document.createRange();
+                            var on = pos.offsetNode;
+                            var off = pos.offset;
+                            if (on.nodeType === Node.TEXT_NODE) {
+                                off = Math.min(off, (on.textContent || '').length);
+                            } else {
+                                off = Math.min(off, on.childNodes ? on.childNodes.length : 0);
+                            }
+                            nativeRange.setStart(on, off);
+                            nativeRange.collapse(true);
+                        }
+                    } catch (err2) {
+                        nativeRange = null;
+                    }
+                }
+                if (!nativeRange || !root.contains(nativeRange.startContainer)) return false;
+
+                var blot = null;
+                try {
+                    blot = Quill.find(nativeRange.startContainer, true);
+                } catch (e) {
+                    blot = null;
+                }
+
+                if (blot && blot.scroll === quill.scroll) {
+                    var idx = 0;
+                    try {
+                        idx = typeof quill.getIndex === 'function' ? quill.getIndex(blot) : blot.offset(quill.scroll);
+                    } catch (e2) {
+                        idx = 0;
+                    }
+
+                    var node = nativeRange.startContainer;
+                    var off = nativeRange.startOffset;
+                    if (node.nodeType === Node.TEXT_NODE && blot.domNode) {
+                        if (blot.domNode === node) {
+                            idx += off;
+                        } else if (blot.domNode.contains(node)) {
+                            var tw = document.createTreeWalker(blot.domNode, NodeFilter.SHOW_TEXT, null);
+                            var t;
+                            while ((t = tw.nextNode())) {
+                                if (t === node) {
+                                    idx += off;
+                                    break;
+                                }
+                                idx += (t.textContent || '').length;
+                            }
+                        }
+                    } else if (node.nodeType === Node.ELEMENT_NODE && blot.domNode === node && off < node.childNodes.length) {
+                        var ch = node.childNodes[off];
+                        if (ch) {
+                            var b2 = null;
+                            try {
+                                b2 = Quill.find(ch, true);
+                            } catch (e3) {
+                                b2 = null;
+                            }
+                            if (b2 && b2.scroll === quill.scroll) {
+                                try {
+                                    idx = typeof quill.getIndex === 'function' ? quill.getIndex(b2) : b2.offset(quill.scroll);
+                                } catch (e4) {
+                                    /* keep idx */
+                                }
+                            }
+                        }
+                    }
+
+                    var max = Math.max(0, quill.getLength() - 1);
+                    idx = Math.max(0, Math.min(idx, max));
+                    quill.setSelection(idx, 0, 'user');
+                } else {
+                    try {
+                        var sel = window.getSelection();
+                        sel.removeAllRanges();
+                        sel.addRange(nativeRange.cloneRange());
+                    } catch (e5) {
+                        return false;
+                    }
+                }
+                quill.focus();
+                return true;
+            }
+
+            function shouldIgnoreTarget(target) {
+                if (!target) return true;
+                if (target.tagName === 'IMG') return true;
+                if (target.closest && target.closest('#image-resize-overlay')) return true;
+                if (target.closest && target.closest('a')) return true;
+                return false;
+            }
+
+            /** Не затирать нативное выделение: иначе после drag (особенно частичного) приходит click → placeCaret → quill.setSelection(i,0). */
+            function hasNonCollapsedSelectionInEditor() {
+                var s = window.getSelection();
+                if (!s || s.rangeCount < 1 || s.isCollapsed) return false;
+                try {
+                    var r = s.getRangeAt(0);
+                    return editor.contains(r.commonAncestorContainer);
+                } catch (_e) {
+                    return false;
+                }
+            }
+
+            var lastTouchMs = 0;
+
+            function onTouchStart(e) {
+                if (shouldIgnoreTarget(e.target)) {
+                    touchStart = null;
+                    return;
+                }
+                var t = e.touches && e.touches[0];
+                touchStart = t ? { x: t.clientX, y: t.clientY } : null;
+            }
+
+            function onTouchEnd(e) {
+                if (shouldIgnoreTarget(e.target)) return;
+                var t = e.changedTouches && e.changedTouches[0];
+                if (!t) return;
+                if (touchStart) {
+                    var dx = Math.abs(t.clientX - touchStart.x);
+                    var dy = Math.abs(t.clientY - touchStart.y);
+                    touchStart = null;
+                    if (dx > 14 || dy > 14) return;
+                } else {
+                    touchStart = null;
+                }
+                lastTouchMs = Date.now();
+                if (hasNonCollapsedSelectionInEditor()) return;
+                placeCaretAtClientPoint(t.clientX, t.clientY);
+            }
+
+            function onClickFallback(e) {
+                if (Date.now() - lastTouchMs < 450) return;
+                if (shouldIgnoreTarget(e.target)) return;
+                if (hasNonCollapsedSelectionInEditor()) return;
+                placeCaretAtClientPoint(e.clientX, e.clientY);
+            }
+
+            editor.addEventListener('touchstart', onTouchStart, { passive: true });
+            editor.addEventListener('touchend', onTouchEnd, { passive: true });
+            if (!('ontouchstart' in window)) {
+                editor.addEventListener('click', onClickFallback);
+            }
+        })(quill);
+
+        (function setupFontPicker() {
+            var optionsContainer = document.querySelector('.ql-font .ql-picker-options');
+            var fontPicker = document.querySelector('.ql-font');
+            if (!optionsContainer || !fontPicker) return;
+            function selectFont(value) {
+                var cur = quill.getFormat();
+                if (cur.font === value) {
+                    fontPicker.classList.remove('ql-expanded');
+                    return;
+                }
+                quill.format('font', value);
+                var label = fontPicker.querySelector('.ql-picker-label');
+                if (label) label.setAttribute('data-value', value);
+                fontPicker.classList.remove('ql-expanded');
+            }
+            customFonts.forEach(function(font) {
+                if (optionsContainer.querySelector('.ql-picker-item[data-value="' + font.value + '"]')) return;
+                var item = document.createElement('span');
+                item.className = 'ql-picker-item';
+                item.setAttribute('data-value', font.value);
+                item.addEventListener('click', function() { selectFont(font.value); });
+                optionsContainer.appendChild(item);
+            });
+        })();
+
+        (function setupHeaderPicker() {
+            var picker = document.querySelector('.ql-toolbar .ql-header');
+            if (!picker) return;
+
+            function normalizeHeaderPickerUi() {
+                picker.querySelectorAll('.ql-picker-label[data-label], .ql-picker-item[data-label]').forEach(function(el) {
+                    el.removeAttribute('data-label');
+                });
+                picker.querySelectorAll('.ql-picker-item').forEach(function(el) {
+                    var v = el.getAttribute('data-value');
+                    if (v === 'false' || v === '' || v == null) {
+                        el.style.display = 'none';
+                        el.setAttribute('aria-hidden', 'true');
+                    }
+                });
+            }
+
+            normalizeHeaderPickerUi();
+
+            var opts = picker.querySelector('.ql-picker-options');
+            if (opts) {
+                var mo = new MutationObserver(normalizeHeaderPickerUi);
+                mo.observe(opts, { childList: true, subtree: true });
+            }
+
+            quill.on('selection-change', function() {
+                requestAnimationFrame(normalizeHeaderPickerUi);
+            });
+        })();
+
+        (function removeCustomFontOptionsFromDom() {
+            customFonts.forEach(function(f) {
+                var opt = document.querySelector('.ql-font option[value="' + f.value + '"]') || document.querySelector('option[value="' + f.value + '"]');
+                if (opt) opt.remove();
+            });
+        })();
+
+        function hexgraphHtmlForSave() {
+            var root = quill.root.cloneNode(true);
+            Array.prototype.forEach.call(root.querySelectorAll('img'), function(img) {
+                img.classList.remove('ql-image-selected');
+                var c = img.getAttribute('class');
+                if (!c || !String(c).trim()) {
+                    img.removeAttribute('class');
+                }
+            });
+            return root.innerHTML;
+        }
+
+        document.querySelector('form').addEventListener('submit', function() {
+            var ta = document.querySelector('#content');
+            if (ta) ta.value = hexgraphHtmlForSave();
+        });
+
+        var selectedEditorImage = null;
+
+        (function setupImageResize() {
+            var container = document.querySelector('#editor-container');
+            var editor = document.querySelector('#editor-container .ql-editor');
+            if (!container || !editor) return;
+
+            var overlay = document.createElement('div');
+            overlay.id = 'image-resize-overlay';
+            var delBtn = document.createElement('button');
+            delBtn.type = 'button';
+            delBtn.className = 'image-delete-btn';
+            delBtn.setAttribute('aria-label', 'Удалить изображение');
+            delBtn.setAttribute('title', 'Удалить');
+            delBtn.innerHTML = '<span aria-hidden="true">×</span>';
+            var handle = document.createElement('div');
+            handle.className = 'resize-handle';
+            handle.setAttribute('role', 'button');
+            handle.setAttribute('aria-label', 'Изменить размер изображения');
+            handle.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v6h-6"/><path d="M3 9V3h6"/><path d="M21 3 14 10"/><path d="m3 21 7-7"/></svg>';
+            overlay.appendChild(delBtn);
+            overlay.appendChild(handle);
+            container.appendChild(overlay);
+
+            var currentImg = null;
+            var startX, startY, startW, startH, aspectRatio;
+
+            function positionOverlay(img) {
+                var cr = container.getBoundingClientRect();
+                var ir = img.getBoundingClientRect();
+                overlay.style.left = (ir.left - cr.left) + 'px';
+                overlay.style.top = (ir.top - cr.top) + 'px';
+                overlay.style.width = img.offsetWidth + 'px';
+                overlay.style.height = img.offsetHeight + 'px';
+            }
+
+            function deleteImageAtBlot(blot) {
+                if (!hexgraphIsQuillImageBlot(blot)) return false;
+                var idx = quill.getIndex(blot);
+                hideOverlay();
+                quill.deleteText(idx, 1, 'user');
+                quill.focus();
+                return true;
+            }
+
+            function deleteSelectedEditorImage() {
+                if (!currentImg) return;
+                var blot = null;
+                try {
+                    blot = Quill.find(currentImg, true);
+                } catch (e) {
+                    blot = null;
+                }
+                if (!blot || blot.scroll !== quill.scroll) {
+                    hideOverlay();
+                    return;
+                }
+                deleteImageAtBlot(blot);
+            }
+
+            function showOverlay(img) {
+                if (currentImg) currentImg.classList.remove('ql-image-selected');
+                currentImg = img;
+                selectedEditorImage = img;
+                img.classList.add('ql-image-selected');
+                overlay.classList.add('active');
+                positionOverlay(img);
+                try {
+                    var blot = Quill.find(img, true);
+                    if (blot && blot.scroll === quill.scroll && hexgraphIsQuillImageBlot(blot)) {
+                        var ix = quill.getIndex(blot);
+                        quill.setSelection(ix, 1, 'user');
+                    }
+                } catch (e2) {}
+            }
+
+            function hideOverlay() {
+                if (currentImg) currentImg.classList.remove('ql-image-selected');
+                overlay.classList.remove('active');
+                currentImg = null;
+                selectedEditorImage = null;
+            }
+
+            delBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                deleteSelectedEditorImage();
+            });
+
+            quill.root.addEventListener('keydown', function(e) {
+                if (e.key !== 'Backspace' && e.key !== 'Delete') return;
+                var range = quill.getSelection();
+                if (range && range.length === 1) {
+                    var leaf = quill.getLeaf(range.index);
+                    if (leaf && leaf[0] && hexgraphIsQuillImageBlot(leaf[0])) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        deleteImageAtBlot(leaf[0]);
+                        return;
+                    }
+                }
+                if (overlay.classList.contains('active') && currentImg) {
+                    var b = null;
+                    try {
+                        b = Quill.find(currentImg, true);
+                    } catch (e3) {
+                        b = null;
+                    }
+                    if (b && hexgraphIsQuillImageBlot(b)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        deleteImageAtBlot(b);
+                    }
+                }
+            }, true);
+
+            function parseMarginLeftPx(img) {
+                var m = img.style.marginLeft;
+                if (m && m.indexOf('px') !== -1) return parseFloat(m) || 0;
+                var ml = getComputedStyle(img).marginLeft;
+                if (!ml || ml === 'auto') return 0;
+                var p = parseFloat(ml);
+                return isNaN(p) ? 0 : p;
+            }
+
+            function clampImageMarginInEditor(img, editor, marginPx) {
+                var ed = editor.getBoundingClientRect();
+                var cs = getComputedStyle(editor);
+                var padL = parseFloat(cs.paddingLeft) || 0;
+                var padR = parseFloat(cs.paddingRight) || 0;
+                var innerL = ed.left + padL;
+                var innerR = ed.right - padR;
+                marginPx = Math.round(marginPx);
+                img.style.marginLeft = marginPx + 'px';
+                var r = img.getBoundingClientRect();
+                if (r.left < innerL - 0.5) {
+                    marginPx += Math.round(innerL - r.left);
+                    img.style.marginLeft = marginPx + 'px';
+                }
+                r = img.getBoundingClientRect();
+                if (r.right > innerR + 0.5) {
+                    marginPx -= Math.round(r.right - innerR);
+                    img.style.marginLeft = marginPx + 'px';
+                }
+                return marginPx;
+            }
+
+            var touchDragState = null;
+            var TOUCH_DRAG_MOVE_OPTS = { capture: true, passive: false };
+            var TOUCH_DRAG_END_OPTS = { capture: true, passive: false };
+
+            function removeTouchDragGlobals() {
+                document.removeEventListener('touchmove', onTouchDragMove, TOUCH_DRAG_MOVE_OPTS);
+                document.removeEventListener('touchend', onTouchDragEnd, TOUCH_DRAG_END_OPTS);
+                document.removeEventListener('touchcancel', onTouchDragEnd, TOUCH_DRAG_END_OPTS);
+            }
+
+            function onTouchDragMove(e) {
+                if (!touchDragState) return;
+                var t = e.touches[0];
+                if (!t) return;
+                var dx = t.clientX - touchDragState.startX;
+                var dy = t.clientY - touchDragState.startY;
+                if (!touchDragState.active) {
+                    if (Math.abs(dx) < 9 && Math.abs(dy) < 9) return;
+                    if (Math.abs(dy) >= Math.abs(dx)) {
+                        removeTouchDragGlobals();
+                        if (touchDragState.img) touchDragState.img.classList.remove('ql-image-touch-dragging');
+                        touchDragState = null;
+                        return;
+                    }
+                    touchDragState.active = true;
+                    touchDragState.img.classList.add('ql-image-touch-dragging');
+                }
+                e.preventDefault();
+                var next = clampImageMarginInEditor(touchDragState.img, touchDragState.editor, touchDragState.startMl + dx);
+                touchDragState.img.style.marginLeft = next + 'px';
+                if (touchDragState.img === currentImg && overlay.classList.contains('active')) {
+                    positionOverlay(touchDragState.img);
+                }
+            }
+
+            function onTouchDragEnd(e) {
+                if (!touchDragState) return;
+                if (e.touches && e.touches.length > 0) return;
+                var img = touchDragState.img;
+                var wasDrag = touchDragState.active;
+                removeTouchDragGlobals();
+                if (img) img.classList.remove('ql-image-touch-dragging');
+                touchDragState = null;
+                if (wasDrag) {
+                    e.preventDefault();
+                    if (img) {
+                        showOverlay(img);
+                        positionOverlay(img);
+                    }
+                    return;
+                }
+                if (img && (e.target === img || (img.contains && img.contains(e.target)))) {
+                    var r = img.getBoundingClientRect();
+                    var tch = e.changedTouches && e.changedTouches[0];
+                    var cy = tch ? tch.clientY : null;
+                    if (cy != null && r.height > 0 && (cy - r.top) / r.height > 0.78) {
+                        e.preventDefault();
+                        if (ensureCaretAfterEditorImage(quill, img)) hideOverlay();
+                        return;
+                    }
+                    e.preventDefault();
+                    showOverlay(img);
+                }
+            }
+
+            editor.addEventListener('touchstart', function(e) {
+                if (e.target.tagName !== 'IMG') return;
+                if (touchDragState) {
+                    removeTouchDragGlobals();
+                    if (touchDragState.img) touchDragState.img.classList.remove('ql-image-touch-dragging');
+                    touchDragState = null;
+                }
+                var t0 = e.touches[0];
+                if (!t0) return;
+                touchDragState = {
+                    img: e.target,
+                    startX: t0.clientX,
+                    startY: t0.clientY,
+                    startMl: parseMarginLeftPx(e.target),
+                    editor: editor,
+                    active: false
+                };
+                document.addEventListener('touchmove', onTouchDragMove, TOUCH_DRAG_MOVE_OPTS);
+                document.addEventListener('touchend', onTouchDragEnd, TOUCH_DRAG_END_OPTS);
+                document.addEventListener('touchcancel', onTouchDragEnd, TOUCH_DRAG_END_OPTS);
+            }, { passive: true });
+
+            /* Нулевой перехват по тексту: никаких pointer/capture/document — каретка полностью нативная + Quill.
+               Картинка: mousedown/click в bubble только на IMG. Рамку снимаем кликом по тексту (не по IMG). */
+            function onEditorImageActivate(e) {
+                if (!e.target || e.target.tagName !== 'IMG') return;
+                var img = e.target;
+                var r = img.getBoundingClientRect();
+                var cy = typeof e.clientY === 'number' ? e.clientY : null;
+                if (cy == null && e.changedTouches && e.changedTouches[0]) {
+                    cy = e.changedTouches[0].clientY;
+                }
+                if (cy != null && r.height > 0 && (cy - r.top) / r.height > 0.78) {
+                    if (ensureCaretAfterEditorImage(quill, img)) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        hideOverlay();
+                    }
+                    return;
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                showOverlay(img);
+            }
+            editor.addEventListener('mousedown', onEditorImageActivate, false);
+            editor.addEventListener('click', onEditorImageActivate, false);
+
+            editor.addEventListener('click', function(e) {
+                if (e.target.tagName === 'IMG' || overlay.contains(e.target)) return;
+                if (e.target.closest && e.target.closest('a')) return;
+                hideOverlay();
+            }, false);
+
+            editor.addEventListener('scroll', function() {
+                if (currentImg && overlay.classList.contains('active')) positionOverlay(currentImg);
+            });
+
+            function beginResize(clientX, clientY, e) {
+                if (!currentImg) return;
+                startX = clientX;
+                startY = clientY;
+                startW = currentImg.offsetWidth;
+                startH = currentImg.offsetHeight;
+                aspectRatio = startH / startW;
+                var pid = e && e.pointerId != null ? e.pointerId : null;
+
+                function move(ev) {
+                    if (pid != null && ev.pointerId !== pid) return;
+                    ev.preventDefault();
+                    var dx = ev.clientX - startX;
+                    var dy = ev.clientY - startY;
+                    var newW = Math.max(50, Math.round(startW + dx));
+                    var newH = Math.max(50, Math.round(newW * aspectRatio));
+                    currentImg.style.width = newW + 'px';
+                    currentImg.style.height = newH + 'px';
+                    positionOverlay(currentImg);
+                }
+                function end(ev) {
+                    if (pid != null && ev && ev.pointerId !== pid) return;
+                    if (pid != null && handle.releasePointerCapture && ev) {
+                        try { handle.releasePointerCapture(pid); } catch (err) {}
+                    }
+                    document.removeEventListener('pointermove', move);
+                    document.removeEventListener('pointerup', end);
+                    document.removeEventListener('pointercancel', end);
+                    document.removeEventListener('mousemove', move);
+                    document.removeEventListener('mouseup', end);
+                    document.body.classList.remove('is-resizing-editor-image');
+                    handle.classList.remove('resize-handle--dragging');
+                }
+
+                document.body.classList.add('is-resizing-editor-image');
+                handle.classList.add('resize-handle--dragging');
+
+                if (window.PointerEvent && e && typeof e.pointerId === 'number') {
+                    try { handle.setPointerCapture(e.pointerId); } catch (err) {}
+                    document.addEventListener('pointermove', move, { passive: false });
+                    document.addEventListener('pointerup', end, { passive: false });
+                    document.addEventListener('pointercancel', end, { passive: false });
+                } else {
+                    document.addEventListener('mousemove', move, { passive: false });
+                    document.addEventListener('mouseup', end, { passive: false });
+                }
+            }
+
+            if (window.PointerEvent) {
+                handle.addEventListener('pointerdown', function(e) {
+                    if (!currentImg) return;
+                    if (e.button != null && e.button !== 0) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    beginResize(e.clientX, e.clientY, e);
+                }, { passive: false });
+            } else {
+                handle.addEventListener('mousedown', function(e) {
+                    if (!currentImg) return;
+                    if (e.button !== 0) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    beginResize(e.clientX, e.clientY, null);
+                });
+            }
+        })();
+
+        (function setupImageAlign() {
+            var alignValues = ['left', 'center', 'right', 'justify', ''];
+            var alignClasses = ['ql-image-align-left', 'ql-image-align-center', 'ql-image-align-right'];
+            // Keep previous explicit size when switching through "justify" (width: 100%)
+            // so that left/center/right can visibly move again.
+            var imagePrevSize = new Map();
+            function applyAlignToImage(img, value) {
+                if (value === '' || value === null) value = 'left';
+                alignClasses.forEach(function(c) { img.classList.remove(c); });
+                if (value === 'justify') {
+                    imagePrevSize.set(img, {
+                        width: img.style.width || '',
+                        height: img.style.height || ''
+                    });
+                    img.style.setProperty('float', 'none', 'important');
+                    img.style.width = '100%';
+                    img.style.marginLeft = '';
+                    img.style.marginRight = '';
+                } else {
+                    if (imagePrevSize.has(img)) {
+                        var prev = imagePrevSize.get(img);
+                        if (prev.width) img.style.width = prev.width; else img.style.removeProperty('width');
+                        if (prev.height) img.style.height = prev.height; else img.style.removeProperty('height');
+                        imagePrevSize.delete(img);
+                    }
+                    img.classList.add('ql-image-align-' + value);
+                    img.style.display = 'block';
+                    // Force positioning even if some Quill/default styles conflict.
+                    var floatValue = value === 'left' ? 'left' : (value === 'right' ? 'right' : 'none');
+                    img.style.setProperty('float', floatValue, 'important');
+                    img.style.setProperty('margin-left', value === 'left' ? '0' : 'auto', 'important');
+                    img.style.setProperty('margin-right', value === 'right' ? '0' : 'auto', 'important');
+                }
+
+                // Quill stores alignment on the surrounding block (e.g. <p class="ql-align-center">...</p>),
+                // so update the parent block classes; otherwise the image visually stays centered.
+                var parent = img.parentElement;
+                if (parent && (parent.tagName === 'P' || parent.tagName === 'DIV')) {
+                    parent.classList.remove('ql-align-left', 'ql-align-center', 'ql-align-right', 'ql-align-justify');
+                    if (value === 'left') parent.classList.add('ql-align-left');
+                    if (value === 'center') parent.classList.add('ql-align-center');
+                    if (value === 'right') parent.classList.add('ql-align-right');
+                    if (value === 'justify') parent.classList.add('ql-align-justify');
+                }
+            }
+            function getSelectedImage() {
+                if (selectedEditorImage && document.contains(selectedEditorImage)) return selectedEditorImage;
+                var range = quill.getSelection();
+                if (!range || range.length !== 1) return null;
+                var leaf = quill.getLeaf(range.index);
+                if (!leaf || !leaf[0]) return null;
+                var node = leaf[0].domNode;
+                return node && node.tagName === 'IMG' ? node : null;
+            }
+            // Toolbar находится вне #editor-container, поэтому обработчик должен слушать весь документ.
+            document.addEventListener('mousedown', function(e) {
+                var item = e.target.closest('.ql-align .ql-picker-item');
+                if (!item) return;
+                var value = item.getAttribute('data-value');
+                if (value === null) value = '';
+                if (alignValues.indexOf(value) === -1) return;
+
+                var img = getSelectedImage();
+                if (!img) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+                applyAlignToImage(img, value === '' ? 'left' : value);
+
+                var picker = document.querySelector('.ql-align');
+                if (picker) picker.classList.remove('ql-expanded');
+            }, true);
+        })();
+
+        (function setupPostBackgroundPicker() {
+            var toolbar = document.querySelector('.ql-toolbar');
+            var editorContainer = document.getElementById('editor-container');
+            var hiddenInput = document.getElementById('background_value');
+            if (!toolbar || !editorContainer || !hiddenInput) return;
+
+            var PATTERN_TILE = '300px';
+            var currentBg = { type: 'color', value: '#ffffff' };
+            try {
+                var _initBg = JSON.parse(hiddenInput.value || '{}');
+                if (_initBg && _initBg.type) currentBg = _initBg;
+            } catch (_e) {}
+            var colorPickerApi = null;
+
+            function setHidden(bg) {
+                hiddenInput.value = JSON.stringify(bg);
+                hiddenInput.dispatchEvent(new CustomEvent("hg-editor-field-changed", { bubbles: true }));
+            }
+
+            function bgToUrl(bg) {
+                if (!bg) return '';
+                if (bg.type === 'image') {
+                    return bgStaticUrl(String(bg.value));
+                }
+                if (bg.type === 'pattern') {
+                    return patternsBaseUrl + bg.value + '.svg';
+                }
+                return '';
+            }
+
+            function applyToEditor(bg) {
+                if (!bg) return;
+                editorContainer.classList.add('post-bg-active');
+                editorContainer.classList.toggle('editor-pattern-bg', bg.type === 'pattern');
+                if (bg.type === 'color') {
+                    editorContainer.style.setProperty('--hg-editor-bg-image', 'none');
+                    editorContainer.style.setProperty('--hg-editor-bg-color', bg.value);
+                    editorContainer.style.setProperty('--hg-editor-bg-size', '');
+                    editorContainer.style.setProperty('--hg-editor-bg-position', '');
+                    editorContainer.style.setProperty('--hg-editor-bg-repeat', '');
+                } else if (bg.type === 'pattern') {
+                    editorContainer.style.setProperty('--hg-editor-bg-color', '');
+                    editorContainer.style.setProperty('--hg-editor-bg-image', 'url(' + bgToUrl(bg) + ')');
+                    editorContainer.style.setProperty('--hg-editor-bg-size', PATTERN_TILE + ' ' + PATTERN_TILE);
+                    editorContainer.style.setProperty('--hg-editor-bg-position', '0 0');
+                    editorContainer.style.setProperty('--hg-editor-bg-repeat', 'repeat');
+                } else {
+                    editorContainer.style.setProperty('--hg-editor-bg-color', '');
+                    editorContainer.style.setProperty('--hg-editor-bg-image', 'url(' + bgToUrl(bg) + ')');
+                    editorContainer.style.setProperty('--hg-editor-bg-size', 'cover');
+                    editorContainer.style.setProperty('--hg-editor-bg-position', 'center');
+                    editorContainer.style.setProperty('--hg-editor-bg-repeat', 'no-repeat');
+                }
+            }
+
+            function updateToolbarButtonIcon(swatchEl, bg) {
+                swatchEl.style.backgroundColor = '';
+                swatchEl.style.backgroundImage = '';
+                swatchEl.style.backgroundSize = '';
+                swatchEl.style.backgroundPosition = '';
+                swatchEl.style.backgroundRepeat = '';
+                if (!bg) {
+                    swatchEl.style.backgroundColor = '#e8e6e3';
+                    return;
+                }
+                if (bg.type === 'color') {
+                    swatchEl.style.backgroundColor = bg.value;
+                    swatchEl.style.backgroundImage = 'none';
+                } else if (bg.type === 'pattern') {
+                    swatchEl.style.backgroundColor = 'transparent';
+                    swatchEl.style.backgroundImage = 'url(' + bgToUrl(bg) + ')';
+                    swatchEl.style.backgroundSize = '22px 22px';
+                    swatchEl.style.backgroundPosition = '0 0';
+                    swatchEl.style.backgroundRepeat = 'repeat';
+                } else {
+                    swatchEl.style.backgroundColor = 'transparent';
+                    swatchEl.style.backgroundImage = 'url(' + bgToUrl(bg) + ')';
+                    swatchEl.style.backgroundSize = 'cover';
+                    swatchEl.style.backgroundPosition = 'center';
+                    swatchEl.style.backgroundRepeat = 'no-repeat';
+                }
+            }
+
+            var btnFormat = document.createElement('span');
+            btnFormat.className = 'ql-formats';
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'ql-post-bg-picker';
+            btn.setAttribute('aria-label', 'Post background');
+            var swatch = document.createElement('span');
+            swatch.className = 'ql-post-bg-picker-swatch';
+            swatch.setAttribute('aria-hidden', 'true');
+            btn.appendChild(swatch);
+            btnFormat.appendChild(btn);
+            toolbar.appendChild(btnFormat);
+
+            var popover = document.createElement('div');
+            popover.className = 'ql-post-bg-popover ql-post-bg-popover--wide';
+            popover.style.display = 'none';
+            toolbar.appendChild(popover);
+
+            var html = '';
+            html += '<div class="ql-post-bg-section ql-post-bg-section-custom ql-post-bg-section-custom-color">';
+            html += '<div class="post-bg-color-picker-mount"></div></div>';
+            html += '<div class="ql-post-bg-section">';
+            html += '<div class="ql-post-bg-section-label">Фоны</div>';
+            html += '<div class="ql-post-bg-grid ql-post-bg-grid-images"></div></div>';
+            popover.innerHTML = html;
+
+            function setActiveItem(activeEl) {
+                popover.querySelectorAll('.ql-post-bg-item').forEach(function(el) {
+                    el.classList.remove('ql-post-bg-active');
+                });
+                if (activeEl) activeEl.classList.add('ql-post-bg-active');
+            }
+
+            function syncActiveFromCurrentBg() {
+                var el = null;
+                if (currentBg.type === 'image' && currentBg.value) {
+                    var items = popover.querySelectorAll('.ql-post-bg-item[data-bg-type="image"]');
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].getAttribute('data-bg-value') === currentBg.value) {
+                            el = items[i];
+                            break;
+                        }
+                    }
+                }
+                setActiveItem(el);
+            }
+
+            var mount = popover.querySelector('.post-bg-color-picker-mount');
+            var popImageGrid = popover.querySelector('.ql-post-bg-grid-images');
+
+            colorPickerApi = createPostBgColorPicker(mount, {
+                initialHex: currentBg.type === 'color' ? currentBg.value : '#ffffff',
+                onChange: function(hex) {
+                    var bg = { type: 'color', value: hex };
+                    currentBg = bg;
+                    setHidden(bg);
+                    updateToolbarButtonIcon(swatch, bg);
+                    applyToEditor(bg);
+                    setActiveItem(null);
+                }
+            });
+
+            (backgroundImages || []).forEach(function(asset) {
+                var fullPath = asset.full;
+                var thumbPath = asset.thumb || asset.full;
+                var item = document.createElement('button');
+                item.type = 'button';
+                item.className = 'ql-post-bg-item';
+                item.setAttribute('data-bg-type', 'image');
+                item.setAttribute('data-bg-value', fullPath);
+
+                var img = document.createElement('img');
+                img.className = 'ql-post-bg-item__thumb';
+                img.alt = '';
+                img.loading = 'lazy';
+                img.decoding = 'async';
+                img.src = bgStaticUrl(thumbPath);
+                item.appendChild(img);
+
+                item.addEventListener('click', function() {
+                    var bg = { type: 'image', value: fullPath };
+                    currentBg = bg;
+                    setHidden(bg);
+                    updateToolbarButtonIcon(swatch, bg);
+                    applyToEditor(bg);
+                    setActiveItem(item);
+                    popover.style.display = 'none';
+                });
+                popImageGrid.appendChild(item);
+            });
+
+            var popoverReposRaf = 0;
+            var popoverScrollResizeBound = false;
+            var portalMounted = false;
+
+            function ensurePopoverPortal() {
+                if (portalMounted) return;
+                portalMounted = true;
+                // Переносим popover в body, чтобы его не резали overflow/stacking context контейнеров.
+                document.body.appendChild(popover);
+            }
+
+            function positionPopoverAnchored() {
+                if (popover.style.display === 'none') return;
+                var rect = btn.getBoundingClientRect();
+                var gap = 8;
+                var viewportPad = 12;
+
+                popover.style.position = 'fixed';
+                popover.style.right = 'auto';
+                popover.style.bottom = 'auto';
+
+                // Сначала ставим "под кнопкой", чтобы измерить реальные размеры.
+                popover.style.top = Math.round(rect.bottom + gap) + 'px';
+                popover.style.left = Math.round(rect.left) + 'px';
+
+                var w = popover.offsetWidth || 320;
+                var h = popover.offsetHeight || 320;
+
+                // Горизонталь: стараемся выровнять по левому краю кнопки, но не вылезти за viewport.
+                var left = rect.left;
+                if (left + w > window.innerWidth - viewportPad) {
+                    left = window.innerWidth - viewportPad - w;
+                }
+                if (left < viewportPad) left = viewportPad;
+
+                // Вертикаль: если снизу не хватает места — открываем вверх.
+                var spaceBelow = window.innerHeight - rect.bottom - gap - viewportPad;
+                var spaceAbove = rect.top - gap - viewportPad;
+                var top = rect.bottom + gap;
+                if (spaceBelow < Math.min(h, 220) && spaceAbove > spaceBelow) {
+                    top = rect.top - gap - h;
+                }
+                if (top < viewportPad) top = viewportPad;
+                if (top + h > window.innerHeight - viewportPad) {
+                    top = Math.max(viewportPad, window.innerHeight - viewportPad - h);
+                }
+
+                popover.style.left = Math.round(left) + 'px';
+                popover.style.top = Math.round(top) + 'px';
+            }
+
+            function scheduleRepositionPopover() {
+                if (popover.style.display === 'none') return;
+                if (popoverReposRaf) cancelAnimationFrame(popoverReposRaf);
+                popoverReposRaf = requestAnimationFrame(function() {
+                    popoverReposRaf = 0;
+                    positionPopoverAnchored();
+                });
+            }
+
+            function bindPopoverReposition() {
+                if (popoverScrollResizeBound) return;
+                popoverScrollResizeBound = true;
+                window.addEventListener('scroll', scheduleRepositionPopover, true);
+                window.addEventListener('resize', scheduleRepositionPopover);
+            }
+
+            function unbindPopoverReposition() {
+                if (!popoverScrollResizeBound) return;
+                popoverScrollResizeBound = false;
+                window.removeEventListener('scroll', scheduleRepositionPopover, true);
+                window.removeEventListener('resize', scheduleRepositionPopover);
+                if (popoverReposRaf) {
+                    cancelAnimationFrame(popoverReposRaf);
+                    popoverReposRaf = 0;
+                }
+            }
+
+            function openPopover() {
+                ensurePopoverPortal();
+                popover.style.display = 'block';
+                bindPopoverReposition();
+                requestAnimationFrame(function() {
+                    positionPopoverAnchored();
+                    if (colorPickerApi && currentBg.type === 'color') {
+                        colorPickerApi.setHex(currentBg.value, true);
+                    }
+                    syncActiveFromCurrentBg();
+                    requestAnimationFrame(positionPopoverAnchored);
+                });
+            }
+
+            function closePopover() {
+                popover.style.display = 'none';
+                unbindPopoverReposition();
+            }
+
+            // Escape для desktop (и внешние клавиатуры на планшетах)
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && popover.style.display !== 'none') closePopover();
+            });
+
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (popover.style.display === 'none') openPopover(); else closePopover();
+            });
+
+            document.addEventListener('click', function(e) {
+                /* Клик по свотчу внутри кнопки: e.target — не btn, иначе попап закрывался в том же тике */
+                if (!popover.contains(e.target) && !btn.contains(e.target)) closePopover();
+            });
+
+            setHidden(currentBg);
+            updateToolbarButtonIcon(swatch, currentBg);
+            applyToEditor(currentBg);
+
+            window.hexgraphEditorRestoreBackground = function() {
+                try {
+                    var raw = hiddenInput.value || '{"type":"color","value":"#ffffff"}';
+                    var bg = JSON.parse(raw);
+                    if (!bg || !bg.type) bg = { type: 'color', value: '#ffffff' };
+                    currentBg = bg;
+                    setHidden(bg);
+                    updateToolbarButtonIcon(swatch, bg);
+                    applyToEditor(bg);
+                    if (colorPickerApi && bg.type === 'color') {
+                        colorPickerApi.setHex(bg.value, true);
+                    }
+                    setActiveItem(null);
+                } catch (err) {}
+            };
+        })();
+
+        /* Оболочка редактора; кнопка предпросмотра — под областью текста, не в тулбаре */
+        (function mountCreatePostButton() {
+            if (document.querySelector('.editor-shell')) return;
+            var ec = document.getElementById('editor-container');
+            var toolbarEl = document.querySelector('form .ql-toolbar');
+            if (!ec || !toolbarEl || toolbarEl.parentNode !== ec.parentNode) return;
+            var parent = ec.parentNode;
+            var shell = document.createElement('div');
+            shell.className = 'editor-shell';
+            parent.insertBefore(shell, toolbarEl);
+            var footer = document.createElement('div');
+            footer.className = 'editor-submit-footer';
+            var submitBtn = document.createElement('button');
+            submitBtn.type = 'button';
+            submitBtn.id = 'create-post-submit';
+            submitBtn.className = 'editor-submit-btn';
+            submitBtn.innerHTML = '<span class="editor-submit-btn__main">Дальше</span><span class="editor-submit-btn__sub">Посмотреть, как будет выглядеть</span>';
+            submitBtn.setAttribute('aria-label', 'Дальше: посмотреть, как будет выглядеть');
+            submitBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+
+                // Предотвращаем двойной клик / повторный submit
+                if (submitBtn.getAttribute('data-submitting') === '1') return;
+                submitBtn.setAttribute('data-submitting', '1');
+                submitBtn.disabled = true;
+
+                var ta = document.getElementById('content');
+                if (ta) ta.value = typeof hexgraphHtmlForSave === 'function' ? hexgraphHtmlForSave() : quill.root.innerHTML;
+                var form = document.getElementById('editor-main-form') || document.querySelector('main.editor-create form');
+                if (!form) {
+                    submitBtn.removeAttribute('data-submitting');
+                    submitBtn.disabled = false;
+                    return;
+                }
+
+                /* 1) Сначала сохраняем черновик (autosave), если autosave API доступен. Это
+                      гарантирует, что при возврате из preview редактор откроется с актуальными данными.
+                   2) Если autosave API недоступен — просто идём в preview. */
+                function doSubmit() {
+                    form.action = '{% url "card_preview" token=card.token %}';
+                    form.method = 'post';
+                    form.submit();
+                    // После submit страница уходит, но на случай bfcache — сбрасываем флаг.
+                    setTimeout(function() {
+                        submitBtn.removeAttribute('data-submitting');
+                        submitBtn.disabled = false;
+                    }, 5000);
+                }
+
+                if (window.HexgraphEditorAutosave && typeof window.HexgraphEditorAutosave._forceSave === 'function') {
+                    window.HexgraphEditorAutosave._forceSave().then(doSubmit).catch(doSubmit);
+                } else {
+                    doSubmit();
+                }
+            });
+            footer.appendChild(submitBtn);
+            shell.appendChild(toolbarEl);
+            shell.appendChild(ec);
+            shell.appendChild(footer);
+
+            (function splitToolbarLayout(tb) {
+                if (!tb || tb.getAttribute('data-toolbar-split') === '1') return;
+                var popover = tb.querySelector(':scope > .ql-post-bg-popover');
+                var groups = Array.prototype.slice.call(tb.querySelectorAll(':scope > .ql-formats'));
+                if (!groups.length) {
+                    if (popover) tb.setAttribute('data-toolbar-split', '1');
+                    return;
+                }
+
+                var toolsWrap = document.createElement('div');
+                toolsWrap.className = 'ql-toolbar-tools';
+                var toolsFrag = document.createDocumentFragment();
+
+                groups.forEach(function(fmt) {
+                    while (fmt.firstChild) toolsFrag.appendChild(fmt.firstChild);
+                    fmt.remove();
+                });
+
+                toolsWrap.appendChild(toolsFrag);
+                var first = tb.firstChild;
+                if (first) {
+                    tb.insertBefore(toolsWrap, first);
+                } else {
+                    tb.appendChild(toolsWrap);
+                }
+                if (popover && popover.parentNode === tb) {
+                    tb.appendChild(popover);
+                }
+
+                tb.setAttribute('data-toolbar-split', '1');
+            })(toolbarEl);
+
+            if (window.HexgraphEditorHelp && typeof window.HexgraphEditorHelp.mount === 'function') {
+                window.HexgraphEditorHelp.mount({ toolbarSelector: 'form .ql-toolbar' });
+            }
+
+            // Кнопка справки должна быть привязана к .editor-intro (правый-нижний угол).
+            (function anchorHelpButtonToIntro() {
+                var intro = document.querySelector('main.editor-create > section.editor-intro');
+                if (!intro) return;
+                var btn = document.querySelector('button.ql-post-help');
+                if (!btn) return;
+                // Переносим саму кнопку внутрь intro, чтобы позиционирование было относительно блока.
+                // События/обработчики сохраняются (узел тот же).
+                intro.appendChild(btn);
+            })();
+        })();
+
+        (function restoreEditorFromServer() {
+            var el = document.getElementById('editor-restore-json');
+            if (!el || !el.textContent.trim()) return;
+            try {
+                var data = JSON.parse(el.textContent);
+                var html = data.content || '';
+                if (String(html).replace(/\s+/g, '') === '') {
+                    quill.setText('');
+                } else {
+                    var delta = quill.clipboard.convert({ html: html });
+                    quill.setContents(delta, 'silent');
+                }
+                var hi = document.getElementById('background_value');
+                if (hi && data.background_value != null) hi.value = data.background_value;
+                if (typeof window.hexgraphEditorRestoreBackground === 'function') {
+                    window.hexgraphEditorRestoreBackground();
+                }
+                var titleEl = document.getElementById('post-title');
+                if (titleEl && data.title != null) titleEl.value = data.title;
+            } catch (err) {}
+        })();
+
+        (function clampToolbarPickers() {
+            var toolbar = document.querySelector('form .ql-toolbar');
+            if (!toolbar) return;
+
+            function getExpandedPickers() {
+                return Array.prototype.slice.call(toolbar.querySelectorAll('.ql-picker.ql-expanded'));
+            }
+
+            function resetOptionStyles(opt) {
+                opt.style.left = '';
+                opt.style.right = '';
+                opt.style.maxWidth = '';
+                opt.style.transform = '';
+            }
+
+            function clampPicker(picker) {
+                var opt = picker.querySelector('.ql-picker-options');
+                if (!opt) return;
+
+                resetOptionStyles(opt);
+
+                var tbRect = toolbar.getBoundingClientRect();
+                var pad = 6;
+                var maxW = Math.max(120, Math.floor(tbRect.width - pad * 2));
+                opt.style.maxWidth = maxW + 'px';
+
+                var optRect = opt.getBoundingClientRect();
+                var shift = 0;
+
+                if (optRect.right > tbRect.right - pad) {
+                    shift -= (optRect.right - (tbRect.right - pad));
+                }
+                if (optRect.left + shift < tbRect.left + pad) {
+                    shift += ((tbRect.left + pad) - (optRect.left + shift));
+                }
+
+                if (shift !== 0) {
+                    opt.style.transform = 'translateX(' + Math.round(shift) + 'px)';
+                }
+            }
+
+            function clampAllExpanded() {
+                getExpandedPickers().forEach(clampPicker);
+            }
+
+            function scheduleClamp() {
+                requestAnimationFrame(clampAllExpanded);
+            }
+
+            toolbar.addEventListener('click', scheduleClamp, true);
+            toolbar.addEventListener('keydown', scheduleClamp, true);
+            window.addEventListener('resize', scheduleClamp);
+            window.addEventListener('scroll', scheduleClamp, true);
+
+            var mo = new MutationObserver(function(mutations) {
+                for (var i = 0; i < mutations.length; i++) {
+                    var m = mutations[i];
+                    if (m.type === 'attributes' && m.attributeName === 'class') {
+                        var t = m.target;
+                        if (t && t.classList && t.classList.contains('ql-picker')) {
+                            scheduleClamp();
+                            return;
+                        }
+                    }
+                }
+            });
+            mo.observe(toolbar, { attributes: true, subtree: true, attributeFilter: ['class'] });
+        })();
+
+        (function setupWelcomeModal() {
+            var root = document.getElementById('hg-welcome');
+            var btn = document.getElementById('hg-welcome-dismiss');
+            if (!root || !btn) return;
+            btn.addEventListener('click', function() {
+                root.classList.add('hg-welcome--closed');
+                root.setAttribute('aria-hidden', 'true');
+            });
+        })();
+
+        /* Мобильная клавиатура: visualViewport → класс для компактных отступов (CSS), без ломки desktop */
+        (function setupMobileKeyboardLayout() {
+            if (!document.body.classList.contains('page-editor')) return;
+            var vv = window.visualViewport;
+            if (!vv) return;
+            var mq = window.matchMedia('(max-width: 768px)');
+            var raf = 0;
+            var KEYBOARD_GAP_PX = 140;
+
+            function tick() {
+                raf = 0;
+                if (!mq.matches) {
+                    document.body.classList.remove('page-editor--keyboard-open');
+                    return;
+                }
+                var layoutH = window.innerHeight || 0;
+                var gap = layoutH - (vv.height || 0);
+                document.body.classList.toggle('page-editor--keyboard-open', gap > KEYBOARD_GAP_PX);
+            }
+
+            function schedule() {
+                if (raf) return;
+                raf = window.requestAnimationFrame(tick);
+            }
+
+            vv.addEventListener('resize', schedule, { passive: true });
+            vv.addEventListener('scroll', schedule, { passive: true });
+            window.addEventListener('resize', schedule, { passive: true });
+            if (mq.addEventListener) {
+                mq.addEventListener('change', schedule);
+            } else if (mq.addListener) {
+                mq.addListener(schedule);
+            }
+            schedule();
+        })();
+
+        (function setupAutosaveDraft() {
+            if (!window.HexgraphEditorAutosave || typeof window.HexgraphEditorAutosave.init !== 'function') return;
+            function getCsrfToken() {
+                var inp = document.querySelector('#editor-main-form input[name="csrfmiddlewaretoken"]');
+                if (inp && inp.value) return inp.value;
+                var name = 'csrftoken';
+                var parts = document.cookie.split(';');
+                for (var i = 0; i < parts.length; i++) {
+                    var c = parts[i].trim();
+                    if (c.indexOf(name + '=') === 0) {
+                        return decodeURIComponent(c.substring(name.length + 1));
+                    }
+                }
+                return '';
+            }
+            window.HexgraphEditorAutosave.init({
+                quill: quill,
+                getHtmlForSave: hexgraphHtmlForSave,
+                saveDraftUrl: '{% url "card_save_draft" token=card.token %}',
+                getCsrfToken: getCsrfToken,
+                statusElement: document.getElementById('editor-autosave-status'),
+                actionsElement: document.getElementById('editor-autosave-actions'),
+                debounceMs: 20000,
+                formRoot: document.getElementById('editor-main-form'),
+                cardToken: '{{ card.token|escapejs }}',
+                recoveryRoot: document.getElementById('editor-draft-recover')
+            });
+        })();
+
+        /* ---------------------------------------------------------------
+         *  BfCache / back-forward navigation fix
+         *  При возврате из preview Safari/Chrome могут восстановить страницу
+         *  из bfcache — тогда submitBtn остаётся в disabled=true / data-submitting='1'.
+         *  pageshow(persisted) сбрасывает его обратно в рабочее состояние.
+         * ------------------------------------------------------------- */
+        window.addEventListener('pageshow', function(e) {
+            if (!e.persisted) return;
+            var btn = document.getElementById('create-post-submit');
+            if (!btn) return;
+            btn.removeAttribute('data-submitting');
+            btn.disabled = false;
+        });
+
+    </script>
+</body>
+</html>

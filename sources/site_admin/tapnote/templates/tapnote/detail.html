@@ -1,0 +1,22 @@
+{% extends "tapnote/base.html" %}
+
+{% block title %}TapNote{% endblock %}
+
+{% block content %}
+<div class="w-full px-4">
+  <div class="mx-auto" style="max-width: 720px;">
+    {% if can_edit %}
+      <div class="flex justify-end mb-4">
+        <a href="{% url 'tapnote:note_edit' note.hashcode %}"
+           class="px-4 py-1.5 rounded-full border border-black text-xs uppercase tracking-[0.14em]">
+          Edit
+        </a>
+      </div>
+    {% endif %}
+    <article class="markdown text-sm leading-relaxed">
+      {{ html|safe }}
+    </article>
+  </div>
+</div>
+{% endblock %}
+

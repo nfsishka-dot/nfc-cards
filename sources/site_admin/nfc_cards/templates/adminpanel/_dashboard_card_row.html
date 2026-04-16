@@ -1,0 +1,65 @@
+<tr class="border-t hover:bg-gray-50">
+    <td class="px-3 py-2 align-top">{{ card.id }}</td>
+    <td class="px-3 py-2 align-top">
+        <a href="http://{{ request.get_host }}/{{ card.token }}"
+           target="_blank"
+           class="text-blue-600 hover:underline break-all">
+            {{ request.get_host }}/{{ card.token }}
+        </a>
+    </td>
+    <td class="px-3 py-2 align-top">
+        {% if card.is_published %}
+            <span class="inline-flex px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[11px]">
+                да
+            </span>
+        {% else %}
+            <span class="inline-flex px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 text-[11px]">
+                нет
+            </span>
+        {% endif %}
+    </td>
+    <td class="px-3 py-2 align-top">
+        {% if card.published_at %}
+            {{ card.published_at|date:"d.m.Y H:i" }}
+        {% else %}
+            —
+        {% endif %}
+    </td>
+    <td class="px-3 py-2 align-top">
+        {{ card.total_size_mb }}
+    </td>
+    <td class="px-3 py-2 align-top whitespace-nowrap">
+        {% if card.has_view_password %}
+            <button type="button"
+                    class="js-copy-view-pw text-[11px] text-gray-600 hover:text-gray-900 cursor-pointer bg-transparent border-0 p-0 m-0 font-normal rounded-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    {% if card.can_reveal_view_password %}data-url="{% url 'nfc_cards:reveal_view_password' card.id %}"{% endif %}
+                    data-has-backup="{% if card.can_reveal_view_password %}1{% else %}0{% endif %}"
+                    {% if not card.can_reveal_view_password %}title="Нет сохранённой копии пароля (старая открытка или нет пакета cryptography). Копирование недоступно."{% endif %}
+                    aria-label="{% if card.can_reveal_view_password %}Скопировать пароль просмотра{% else %}Пароль без резервной копии{% endif %}">
+                Да
+            </button>
+        {% else %}
+            <span class="text-[11px] text-gray-500">Нет</span>
+        {% endif %}
+    </td>
+    <td class="px-3 py-2 align-top text-right space-x-2">
+        <form method="post" action="{% url 'nfc_cards:delete_card_content' card.id %}"
+              class="inline" onclick="event.stopPropagation();">
+            {% csrf_token %}
+            <button type="submit"
+                    class="px-2 py-1 rounded bg-gray-100 text-[11px] hover:bg-gray-200"
+                    onclick="return confirm('Удалить только содержимое открытки?');">
+                Удалить открытку
+            </button>
+        </form>
+        <form method="post" action="{% url 'nfc_cards:delete_card' card.id %}"
+              class="inline" onclick="event.stopPropagation();">
+            {% csrf_token %}
+            <button type="submit"
+                    class="px-2 py-1 rounded bg-red-100 text-[11px] text-red-700 hover:bg-red-200"
+                    onclick="return confirm('Полностью удалить ссылку?');">
+                Удалить ссылку
+            </button>
+        </form>
+    </td>
+</tr>

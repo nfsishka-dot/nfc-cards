@@ -1,0 +1,162 @@
+/* Custom post background color picker (no input[type=color]) */
+
+.ql-post-bg-popover.ql-post-bg-popover--wide {
+    width: 280px;
+    max-width: calc(100vw - 24px);
+}
+
+.ql-post-bg-section-custom {
+    margin-bottom: 12px;
+}
+
+.ccp-root {
+    border: 1px solid #d0d0d0;
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.ccp-sv-wrap {
+    position: relative;
+    width: 100%;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: crosshair;
+    margin-bottom: 10px;
+}
+
+.ccp-sv-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    vertical-align: top;
+    touch-action: none;
+}
+
+.ccp-sv-marker {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    padding: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #000, inset 0 0 0 1px rgba(0, 0, 0, 0.2);
+    border-radius: 50%;
+    background: transparent;
+    transform: translate(-50%, -50%);
+    pointer-events: auto;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    touch-action: none;
+    cursor: grab;
+}
+
+.ccp-sv-marker:hover,
+.ccp-sv-marker:focus,
+.ccp-sv-marker:focus-visible,
+.ccp-sv-marker:active {
+    /* Prevent global `button:hover { transform: ... }` from breaking centering */
+    transform: translate(-50%, -50%) !important;
+    outline: none;
+}
+
+.ccp-mid {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.ccp-preview {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 2px solid #c0c0c0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.ccp-hue-wrap {
+    flex: 1;
+    min-width: 0;
+}
+
+.ccp-hue-track {
+    position: relative;
+    height: 20px;
+    border-radius: 10px;
+    border: 1px solid #bbb;
+    cursor: pointer;
+    touch-action: none;
+    user-select: none;
+    background: linear-gradient(
+        to right,
+        #f00 0%,
+        #ff0 17%,
+        #0f0 33%,
+        #0ff 50%,
+        #00f 67%,
+        #f0f 83%,
+        #f00 100%
+    );
+    box-sizing: border-box;
+}
+
+.ccp-hue-thumb {
+    position: absolute;
+    top: 50%;
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    padding: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px #333, 0 4px 12px rgba(0, 0, 0, 0.18);
+    border-radius: 50%;
+    background: #f00;
+    transform: translate(-50%, -50%);
+    cursor: grab;
+    box-sizing: border-box;
+    z-index: 1;
+    touch-action: none;
+}
+
+.ccp-hue-thumb:active {
+    cursor: grabbing;
+}
+
+.ccp-hue-thumb:hover,
+.ccp-hue-thumb:focus,
+.ccp-hue-thumb:focus-visible,
+.ccp-hue-thumb:active {
+    /* Prevent global `button:hover { transform: ... }` from breaking centering */
+    transform: translate(-50%, -50%) !important;
+    outline: none;
+    background: #f00;
+}
+
+/* RGB inputs removed: the picker now keeps color state internally (HSV), optimized for touch */
+
+.ql-post-bg-section-label {
+    font-size: 0.8em;
+    color: #555;
+    margin: 0 0 6px 2px;
+    font-weight: 600;
+}
+
+@media (max-width: 480px) {
+    .ccp-hue-track {
+        height: 22px;
+    }
+
+    .ccp-hue-thumb {
+        width: 24px;
+        height: 24px;
+    }
+
+    .ccp-sv-marker {
+        width: 22px;
+        height: 22px;
+    }
+}

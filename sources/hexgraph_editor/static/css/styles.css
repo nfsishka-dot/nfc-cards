@@ -1,0 +1,1587 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;700&display=swap');
+
+/* =========================
+   RESET / TOKENS
+   ========================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #f6f7f8;
+    --surface: rgba(255, 255, 255, 0.92);
+    --surface-strong: #ffffff;
+    --surface-soft: #f5f5f4;
+    --surface-soft-2: #efefed;
+    --border: #e7e4df;
+    --border-strong: #d7d2cb;
+    --text: #2f2f2f;
+    --muted: #757575;
+    --shadow-soft: 0 4px 14px rgba(0, 0, 0, 0.05);
+    --shadow-card: 0 14px 32px rgba(0, 0, 0, 0.07);
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --radius-sm: 12px;
+    --tap: 44px;
+    --toolbar-gap: 8px;
+    /* Ровно 2 квадратные кнопки + один gap между ними */
+    --font-picker-width: calc(2 * var(--tap) + var(--toolbar-gap));
+    --content-max: 1520px;
+}
+
+@font-face {
+    font-family: "Lorenco";
+    src: url("../fonts/Pag_Font4You.ttf") format("truetype");
+    font-display: swap;
+}
+@font-face {
+    font-family: "Capuletty";
+    src: url("../fonts/Capuletty_Font4You.ttf") format("truetype");
+    font-display: swap;
+}
+@font-face {
+    font-family: "Abram";
+    src: url("../fonts/Abram_Font4You.ttf") format("truetype");
+    font-display: swap;
+}
+@font-face {
+    font-family: "Grace";
+    src: url("../fonts/Lorenco_Font4You.ttf") format("truetype");
+    font-display: swap;
+}
+
+/* =========================
+   BASE
+   ========================= */
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    position: relative;
+    direction: ltr;
+    text-align: left;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 20%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.6));
+    pointer-events: none;
+    z-index: -1;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+/* =========================
+   HEADER / LAYOUT
+   ========================= */
+
+header {
+    background: linear-gradient(135deg, #e0e0e0, #cfcfcf);
+    color: var(--text);
+    padding: 10px 18px;
+    text-align: left;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    position: sticky;
+    top: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+header h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 2.3rem);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+main {
+    padding: 32px 8px 48px;
+    position: relative;
+    z-index: 1;
+}
+
+.container {
+    width: 100%;
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* =========================
+   CREATE POST (прямые дети main — без .container / .form-section)
+   ========================= */
+
+main.editor-create {
+    width: 100%;
+    max-width: var(--content-max);
+    margin: 32px auto 48px;
+    height: auto;
+    min-height: 480px;
+    padding: 28px 10px;
+    box-sizing: border-box;
+    background: var(--surface);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(6px);
+}
+
+main.editor-create > h2 {
+    margin: 0 0 20px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--text);
+}
+
+.input-title {
+    width: 100%;
+    padding: 16px 18px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    font-size: 1.05rem;
+    color: var(--text);
+    background: var(--surface-strong);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 18px;
+}
+
+.input-title:focus {
+    border-color: #b9b3aa;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.04);
+}
+
+/* =========================
+   GENERIC BUTTONS
+   Avoid breaking toolbar buttons
+   ========================= */
+
+button:not(.ql-post-bg-picker):not(.ql-post-bg-item):not(.editor-submit-btn):not(.ql-picker-label):not(.ql-picker-item) {
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+/* =========================
+   EDITOR SHELL
+   ========================= */
+
+.editor-shell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100%;
+    min-height: 540px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: transparent;
+    overflow: hidden;
+}
+
+#editor-container {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* =========================
+   QUILL TOOLBAR
+   ========================= */
+
+.editor-shell > .ql-toolbar {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+/* Snow: .ql-formats { margin-right: 15px } и ::after clearfix ломают ровный gap — отключаем */
+.editor-shell .ql-toolbar.ql-snow::after,
+.editor-shell .ql-toolbar.ql-snow::before {
+    content: none !important;
+    display: none !important;
+}
+
+.ql-toolbar {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    align-content: flex-start;
+    justify-content: center;
+    /* Один ряд контролов с естественным переносом; шаг только gap */
+    gap: var(--toolbar-gap);
+    background: rgba(250, 249, 247, 0.96);
+    border: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    border-radius: 18px 18px 0 0;
+    padding: 10px;
+    box-shadow: none;
+    position: relative;
+}
+
+/*
+ * Возможные пробелы/переносы между прямыми детьми .ql-toolbar — анонимные flex-элементы.
+ * font-size: 0 схлопывает их; размер шрифта возвращаем у текста в контролах и попапах.
+ */
+.editor-shell .ql-toolbar {
+    font-size: 0;
+    line-height: 0;
+}
+
+.editor-shell .ql-toolbar .ql-font .ql-picker-label,
+.editor-shell .ql-toolbar .ql-font .ql-picker-item,
+.editor-shell .ql-toolbar .editor-submit-btn,
+.editor-shell .ql-toolbar .ql-picker-options,
+.editor-shell .ql-toolbar .ql-post-bg-popover {
+    font-size: 1rem;
+    line-height: normal;
+}
+
+/* Выпадающие панели не участвуют в ряду, но Snow может задать горизонтальный margin */
+.editor-shell .ql-toolbar .ql-picker-options {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/*
+ * Margin не задаёт шаг ряда: только gap.
+ * Основной поток кнопок живёт в .ql-toolbar-tools; «Создать открытку» — отдельный блок справа.
+ */
+.editor-shell .ql-toolbar .ql-toolbar-tools > button,
+.editor-shell .ql-toolbar .ql-toolbar-tools > .ql-picker,
+.editor-shell .ql-toolbar .ql-toolbar-tools > .ql-picker .ql-picker-label,
+.editor-shell .ql-toolbar .ql-formats,
+.editor-shell .ql-toolbar .ql-formats > button,
+.editor-shell .ql-toolbar .ql-formats > .ql-picker,
+.editor-shell .ql-toolbar .ql-formats .ql-picker-label {
+    margin: 0 !important;
+}
+
+.editor-shell .ql-toolbar .ql-toolbar-tools {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--toolbar-gap);
+}
+
+/* Fallback для статичной разметки без split: мини-группы тоже flex+wrap */
+.editor-shell .ql-toolbar:not([data-toolbar-split]) .ql-formats {
+    display: flex !important;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--toolbar-gap);
+    margin: 0 !important;
+    min-width: 0;
+}
+
+.editor-shell .ql-toolbar .ql-formats--create-post {
+    margin-left: auto !important;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    flex: 0 0 auto;
+}
+
+/* Snow: ::after clearfix у .ql-formats — лишний flex-элемент (только пока есть группы) */
+.editor-shell .ql-toolbar .ql-formats::after,
+.editor-shell .ql-toolbar .ql-formats::before {
+    content: none !important;
+    display: none !important;
+}
+
+/*
+ * Toolbar controls — три типа (квадратные кнопки, компактные picker, широкий ql-font).
+ */
+
+/* --- Type 1a: квадратные кнопки (после flatten — прямые дети тулбара; в fixture — внутри .ql-formats) --- */
+.editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn),
+.editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn) {
+    flex: 0 0 var(--tap);
+    box-sizing: border-box;
+    width: var(--tap);
+    min-width: var(--tap);
+    max-width: var(--tap);
+    height: var(--tap);
+    min-height: var(--tap);
+    padding: 0 !important;
+    border-radius: 13px !important;
+    border: 1px solid #e5e1db !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f3f1 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn) svg,
+.editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn) svg {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* --- Type 1b: фон-пикер — прямоугольная кнопка, цвет/картинка в круглом .ql-post-bg-picker-swatch (inline из JS) */
+.ql-toolbar .ql-post-bg-picker {
+    flex: 0 0 var(--tap);
+    box-sizing: border-box;
+    width: var(--tap) !important;
+    min-width: var(--tap) !important;
+    max-width: var(--tap) !important;
+    height: var(--tap) !important;
+    min-height: var(--tap) !important;
+    padding: 5px !important;
+    border-radius: 13px !important;
+    border: 1px solid #e5e1db !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f3f1 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.ql-toolbar .ql-post-bg-picker .ql-post-bg-picker-swatch {
+    display: block;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35);
+    overflow: hidden;
+    pointer-events: none;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* --- Type 1d: заголовки (размер/уровень) — квадрат 44×44, не «длинный select» --- */
+.ql-toolbar .ql-picker.ql-header {
+    flex: 0 0 var(--tap);
+    width: var(--tap) !important;
+    min-width: var(--tap) !important;
+    max-width: var(--tap) !important;
+    height: var(--tap) !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box;
+    float: none !important;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: var(--tap) !important;
+    padding: 0 3px !important;
+    border-radius: 13px !important;
+    border: 1px solid #e5e1db !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f3f1 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label svg {
+    display: none !important;
+}
+
+/* Перебиваем Quill Snow: подписи через ::before + убираем гигантские размеры в списке */
+.ql-toolbar .ql-picker.ql-header .ql-picker-label::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item::before {
+    content: 'aA' !important;
+    display: inline-block;
+    line-height: 1.1 !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="1"]::before { content: 'aA 1' !important; }
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="2"]::before { content: 'aA 2' !important; }
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: 'aA 3' !important; }
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label[data-value="4"]::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="4"]::before { content: 'aA 4' !important; }
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label[data-value="5"]::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="5"]::before { content: 'aA 5' !important; }
+
+/*
+ * Пункт «Normal» (false) в меню не показываем — в Quill 2 это часто элемент без data-value,
+ * реже data-value="false" / "".
+ */
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="false"],
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value=""],
+.ql-toolbar .ql-picker.ql-header .ql-picker-item:not([data-value]) {
+    display: none !important;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-options {
+    width: var(--tap) !important;
+    min-width: var(--tap) !important;
+    max-width: var(--tap) !important;
+    box-sizing: border-box;
+    padding: 6px 3px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+    margin-top: 6px;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-item {
+    padding: 6px 2px !important;
+    text-align: center;
+    border-radius: 10px;
+    line-height: 1.2;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-item.ql-selected {
+    background: rgba(0, 102, 204, 0.1);
+    color: inherit;
+}
+
+/* --- Type 1c: компактные pickers (align, color, background, …) — квадратная капсула --- */
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) {
+    flex: 0 0 var(--tap);
+    width: var(--tap) !important;
+    min-width: var(--tap) !important;
+    max-width: var(--tap) !important;
+    height: var(--tap) !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box;
+}
+
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: var(--tap) !important;
+    padding: 0 !important;
+    border-radius: 13px !important;
+    border: 1px solid #e5e1db !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f3f1 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label svg {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* --- Type 2: пикер шрифта — фиксированная ширина = 2×кнопка + gap (не от текста и не от вьюпорта) --- */
+.ql-toolbar .ql-picker.ql-font {
+    flex: 0 0 var(--font-picker-width);
+    width: var(--font-picker-width) !important;
+    min-width: var(--font-picker-width) !important;
+    max-width: var(--font-picker-width) !important;
+    height: var(--tap) !important;
+    display: flex !important;
+    align-items: stretch !important;
+    box-sizing: border-box;
+}
+
+.ql-toolbar .ql-picker.ql-font .ql-picker-label {
+    box-sizing: border-box;
+    flex: 1;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: var(--tap) !important;
+    height: var(--tap) !important;
+    padding: 0 22px 0 8px !important;
+    border-radius: 13px !important;
+    border: 1px solid #e5e1db !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f3f1 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    justify-content: flex-start !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn):hover,
+.editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn):hover,
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label:hover,
+.ql-toolbar .ql-picker.ql-header .ql-picker-label:hover,
+.ql-toolbar .ql-picker.ql-font .ql-picker-label:hover {
+    background: linear-gradient(180deg, #ffffff 0%, #efedea 100%) !important;
+    border-color: #d8d2c9 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    transform: translateY(-1px);
+}
+
+.ql-toolbar .ql-post-bg-picker:hover {
+    background: linear-gradient(180deg, #ffffff 0%, #efedea 100%) !important;
+    border-color: #d8d2c9 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    transform: translateY(-1px);
+}
+
+.editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn):active,
+.editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn):active,
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label:active,
+.ql-toolbar .ql-picker.ql-header .ql-picker-label:active,
+.ql-toolbar .ql-picker.ql-font .ql-picker-label:active {
+    transform: translateY(0);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+.ql-toolbar .ql-post-bg-picker:active {
+    transform: translateY(0);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+.editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn).ql-active,
+.editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn).ql-active,
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label.ql-active,
+.ql-toolbar .ql-picker.ql-header .ql-picker-label.ql-active,
+.ql-toolbar .ql-picker.ql-font .ql-picker-label.ql-active,
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header).ql-expanded .ql-picker-label,
+.ql-toolbar .ql-picker.ql-header.ql-expanded .ql-picker-label,
+.ql-toolbar .ql-picker.ql-font.ql-expanded .ql-picker-label {
+    background: linear-gradient(180deg, #ece9e4 0%, #e4e0da 100%) !important;
+    border-color: #cec7bd !important;
+}
+
+/* Picker dropdown */
+.ql-toolbar .ql-picker-options {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+    background: #fff;
+    padding: 8px;
+    z-index: 1200;
+}
+
+.ql-toolbar .ql-picker-item {
+    border-radius: 10px;
+}
+
+.ql-toolbar .ql-picker.ql-background .ql-picker-item.hg-ql-bg-clear {
+    background-color: #f3f4f6 !important;
+    background-image:
+        linear-gradient(45deg, #d1d5db 25%, transparent 25%),
+        linear-gradient(-45deg, #d1d5db 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #d1d5db 75%),
+        linear-gradient(-45deg, transparent 75%, #d1d5db 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+}
+
+.ql-toolbar .ql-picker.ql-background .ql-picker-item[data-value="#ffffff"] {
+    background-color: #ffffff !important;
+    box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.28);
+}
+
+/* Выпадающее меню выравнивания: иконки по центру ширины панели (не прижаты влево) */
+.ql-toolbar .ql-picker.ql-align.ql-expanded .ql-picker-options {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 6px !important;
+    box-sizing: border-box;
+}
+
+.ql-toolbar .ql-picker.ql-align .ql-picker-item {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    float: none !important;
+}
+
+/* Submit button inside toolbar */
+.editor-shell .editor-submit-btn {
+    width: auto !important;
+    min-width: 128px !important;
+    max-width: 100%;
+    height: var(--tap) !important;
+    min-height: var(--tap) !important;
+    padding: 0 18px !important;
+    font-size: 0.96rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+    color: #fff;
+    background: linear-gradient(180deg, #2e2e2e 0%, #1d1d1d 100%) !important;
+    border: 1px solid rgba(0, 0, 0, 0.16) !important;
+    border-radius: 14px !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 16px rgba(0, 0, 0, 0.14) !important;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+
+.editor-shell .editor-submit-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.02);
+}
+
+.editor-shell .editor-submit-btn:active {
+    transform: translateY(0);
+}
+
+#editor-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#editor-container th,
+#editor-container td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+/* =========================
+   QUILL EDITOR AREA
+   ========================= */
+
+#editor-container .ql-editor {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    min-height: 300px;
+    overflow-y: auto;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: var(--text);
+    padding: 24px 11px 30px;
+    background-color: #fafafa;
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 18px 18px;
+    box-shadow: none;
+}
+
+#editor-container.post-bg-active .ql-editor {
+    background-color: transparent !important;
+}
+
+.ql-editor a {
+    color: #0066cc;
+    text-decoration: none;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.ql-editor a:hover {
+    color: #004080;
+    text-decoration: underline;
+}
+
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6 {
+    color: var(--text);
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: 400;
+}
+
+.ql-editor ul,
+.ql-editor ol {
+    margin-left: 20px;
+    padding-left: 10px;
+}
+
+.ql-editor li {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+/* =========================
+   IMAGE STYLES
+   ========================= */
+
+.ql-editor img,
+.post-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: block;
+    margin: 0 auto;
+}
+
+.post-content img {
+    max-width: 90%;
+}
+
+.ql-editor img.ql-image-align-left,
+.ql-editor img.ql-image-align-center,
+.ql-editor img.ql-image-align-right,
+.content img.ql-image-align-left,
+.content img.ql-image-align-center,
+.content img.ql-image-align-right {
+    max-width: fit-content !important;
+}
+
+.ql-editor img.ql-image-align-left,
+.content img.ql-image-align-left {
+    float: left !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+.ql-editor img.ql-image-align-center,
+.content img.ql-image-align-center {
+    float: none !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.ql-editor img.ql-image-align-right,
+.content img.ql-image-align-right {
+    float: right !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+.ql-editor p.ql-align-left img.ql-image-align-left,
+.ql-editor div.ql-align-left img.ql-image-align-left,
+.ql-editor p.ql-align-center img.ql-image-align-left,
+.ql-editor div.ql-align-center img.ql-image-align-left,
+.ql-editor p.ql-align-right img.ql-image-align-left,
+.ql-editor div.ql-align-right img.ql-image-align-left,
+.content p.ql-align-left img.ql-image-align-left,
+.content div.ql-align-left img.ql-image-align-left,
+.content p.ql-align-center img.ql-image-align-left,
+.content div.ql-align-center img.ql-image-align-left,
+.content p.ql-align-right img.ql-image-align-left,
+.content div.ql-align-right img.ql-image-align-left {
+    float: left !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+.ql-editor p.ql-align-left img.ql-image-align-center,
+.ql-editor div.ql-align-left img.ql-image-align-center,
+.ql-editor p.ql-align-center img.ql-image-align-center,
+.ql-editor div.ql-align-center img.ql-image-align-center,
+.ql-editor p.ql-align-right img.ql-image-align-center,
+.ql-editor div.ql-align-right img.ql-image-align-center,
+.content p.ql-align-left img.ql-image-align-center,
+.content div.ql-align-left img.ql-image-align-center,
+.content p.ql-align-center img.ql-image-align-center,
+.content div.ql-align-center img.ql-image-align-center,
+.content p.ql-align-right img.ql-image-align-center,
+.content div.ql-align-right img.ql-image-align-center {
+    float: none !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.ql-editor p.ql-align-left img.ql-image-align-right,
+.ql-editor div.ql-align-left img.ql-image-align-right,
+.ql-editor p.ql-align-center img.ql-image-align-right,
+.ql-editor div.ql-align-center img.ql-image-align-right,
+.ql-editor p.ql-align-right img.ql-image-align-right,
+.ql-editor div.ql-align-right img.ql-image-align-right,
+.content p.ql-align-left img.ql-image-align-right,
+.content div.ql-align-left img.ql-image-align-right,
+.content p.ql-align-center img.ql-image-align-right,
+.content div.ql-align-center img.ql-image-align-right,
+.content p.ql-align-right img.ql-image-align-right,
+.content div.ql-align-right img.ql-image-align-right {
+    float: right !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+/* Image resize overlay */
+#image-resize-overlay {
+    display: none;
+    position: absolute;
+    box-sizing: border-box;
+    border: 2px solid #06c;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#image-resize-overlay.active {
+    display: block;
+    pointer-events: none;
+}
+
+#image-resize-overlay .resize-handle {
+    position: absolute;
+    right: -22px;
+    bottom: -22px;
+    width: 44px;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: se-resize;
+    touch-action: none;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-end;
+}
+
+/* Видимый «кубик» в углу; зона нажатия 44×44 для пальца */
+#image-resize-overlay .resize-handle::after {
+    content: '';
+    display: block;
+    width: 16px;
+    height: 16px;
+    margin: 0 2px 2px 0;
+    background: #06c;
+    border-radius: 3px;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.95);
+    pointer-events: none;
+}
+
+#image-resize-overlay .resize-handle.resize-handle--dragging {
+    cursor: grabbing;
+}
+
+body.is-resizing-editor-image {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.ql-editor img.ql-image-selected {
+    outline: 2px solid #06c;
+    outline-offset: 2px;
+}
+
+/* =========================
+   BACKGROUND PICKER
+   ========================= */
+
+/* Координаты top/left задаёт JS под кнопкой .ql-post-bg-picker (как .ql-picker-options у цвета текста) */
+.ql-post-bg-popover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 2000;
+    width: 280px;
+    max-width: calc(100vw - 20px);
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.15);
+    padding: 14px;
+    backdrop-filter: blur(8px);
+}
+
+.ql-post-bg-section {
+    margin-bottom: 12px;
+}
+
+.ql-post-bg-section:last-child {
+    margin-bottom: 0;
+}
+
+.ql-post-bg-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 8px;
+}
+
+.ql-post-bg-item {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    padding: 0;
+    cursor: pointer;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.ql-post-bg-item.ql-post-bg-active {
+    border-color: #06c;
+}
+
+/* Live preview в редакторе (картинка на #editor-container) */
+#editor-container.post-bg-active {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.post-document.post-bg-active .ql-snow,
+.post-document.post-bg-active .ql-editor {
+    background: transparent !important;
+}
+
+/* =========================
+   CONTENT / POST VIEW
+   ========================= */
+
+.post-content {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-soft);
+}
+
+.post-content h2 {
+    font-size: 2.2rem;
+    color: var(--text);
+}
+
+.title-separator {
+    border: 0;
+    height: 2px;
+    background: #d4d0cb;
+    margin: 20px 0;
+}
+
+.content {
+    font-size: 1.2rem;
+    line-height: 1.7;
+    color: var(--text);
+}
+
+.content.ql-editor {
+    font-family: inherit;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+    font-weight: 400;
+}
+
+.back-link {
+    display: block;
+    margin: 20px 0;
+    text-align: right;
+    font-size: 1rem;
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: #111;
+}
+
+.post-date,
+.post-views {
+    font-size: 1rem;
+    color: #777;
+    font-style: italic;
+}
+
+.post-date {
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.post-views {
+    margin: 0 0 10px;
+    text-align: left;
+}
+
+/* Post-only view */
+body.post-view::before {
+    display: none;
+}
+
+/* Фон поста задаётся на body при post-bg-active (полная высота вьюпорта); иначе белая страница */
+body.post-view {
+    min-height: 100vh;
+    min-height: 100dvh;
+    box-sizing: border-box;
+}
+
+body.post-view:not(.post-bg-active) {
+    background: #fff;
+}
+
+/* Контент поверх фона без собственного белого слоя */
+body.post-view.post-bg-active .post-document {
+    background: transparent !important;
+}
+
+.post-document {
+    width: 100%;
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 2rem 8px;
+    box-sizing: border-box;
+}
+
+.post-document.post-bg-active {
+    background: transparent !important;
+}
+
+/* Страница предпросмотра: контент не уходит под фиксированную панель */
+body.post-preview-page main.post-document {
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+}
+
+.post-preview-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    background: rgba(255, 255, 255, 0.96);
+    border-top: 1px solid var(--border-strong);
+    box-shadow: 0 -10px 28px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(10px);
+}
+
+.post-preview-bar__inner {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.post-preview-bar__form {
+    margin: 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.post-preview-bar__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    min-width: 140px;
+    padding: 0 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 14px;
+    text-decoration: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+
+.post-preview-bar__btn--secondary {
+    background: var(--surface-strong);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    text-align: center;
+}
+
+.post-preview-bar__btn--secondary:hover {
+    filter: brightness(0.98);
+}
+
+.post-preview-bar__btn--primary {
+    background: linear-gradient(180deg, #2e2e2e 0%, #1d1d1d 100%);
+    color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+}
+
+.post-preview-bar__btn--primary:hover {
+    filter: brightness(1.03);
+    transform: translateY(-1px);
+}
+
+@media only screen and (max-width: 480px) {
+    .post-preview-bar__inner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .post-preview-bar__form {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .post-preview-bar__btn {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+/* =========================
+   PREVIEW: подтверждение публикации
+   ========================= */
+
+body.preview-modal-open {
+    overflow: hidden;
+}
+
+.preview-confirm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 4500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+
+.preview-confirm-modal.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.preview-confirm-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(22, 22, 24, 0.48);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+.preview-confirm-modal__panel {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    max-height: min(calc(100vh - 40px), calc(100dvh - 40px));
+    overflow: auto;
+    margin: auto;
+    padding: 28px 28px 24px;
+    background: var(--surface-strong);
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.03),
+        0 24px 56px rgba(0, 0, 0, 0.14);
+    transform: scale(0.96) translateY(12px);
+    opacity: 0;
+    transition:
+        transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.28s ease;
+    -webkit-overflow-scrolling: touch;
+}
+
+.preview-confirm-modal.is-open .preview-confirm-modal__panel {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+.preview-confirm-modal__title {
+    margin: 0 0 14px;
+    font-size: 1.35rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    color: var(--text);
+}
+
+.preview-confirm-modal__text {
+    margin: 0 0 26px;
+    font-size: 1.02rem;
+    line-height: 1.55;
+    color: var(--muted);
+}
+
+.preview-confirm-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.preview-confirm-modal__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    min-width: 132px;
+    padding: 0 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    border-radius: 14px;
+    cursor: pointer;
+    border: none;
+    box-sizing: border-box;
+    transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+
+.preview-confirm-modal__btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.preview-confirm-modal__btn--secondary {
+    background: var(--surface-soft);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+}
+
+.preview-confirm-modal__btn--secondary:hover:not(:disabled) {
+    filter: brightness(0.98);
+}
+
+.preview-confirm-modal__btn--primary {
+    background: linear-gradient(180deg, #2e2e2e 0%, #1d1d1d 100%);
+    color: #fff;
+    border: 1px solid rgba(0, 0, 0, 0.18);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.14);
+}
+
+.preview-confirm-modal__btn--primary:hover:not(:disabled) {
+    filter: brightness(1.03);
+    transform: translateY(-1px);
+}
+
+@media only screen and (max-width: 480px) {
+    .preview-confirm-modal {
+        align-items: flex-end;
+        padding: 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .preview-confirm-modal__panel {
+        max-width: 100%;
+        max-height: min(88vh, 88dvh);
+        margin: 0;
+        border-radius: 20px 20px 0 0;
+        padding: 24px 20px max(20px, env(safe-area-inset-bottom, 0px));
+        transform: translateY(100%);
+    }
+
+    .preview-confirm-modal.is-open .preview-confirm-modal__panel {
+        transform: translateY(0);
+    }
+
+    .preview-confirm-modal__actions {
+        flex-direction: column-reverse;
+        justify-content: stretch;
+    }
+
+    .preview-confirm-modal__btn {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+/* =========================
+   FONT PICKER MAPPINGS
+   ========================= */
+
+.ql-editor .ql-font-sans-serif { font-family: Arial, Helvetica, sans-serif; }
+.ql-editor .ql-font-serif { font-family: Georgia, "Times New Roman", serif; }
+.ql-editor .ql-font-monospace { font-family: Consolas, Monaco, "Courier New", monospace; }
+.ql-editor .ql-font-lorenco { font-family: "Lorenco", sans-serif; }
+.ql-editor .ql-font-capuletty { font-family: "Capuletty", sans-serif; }
+.ql-editor .ql-font-abram { font-family: "Abram", sans-serif; }
+.ql-editor .ql-font-grace { font-family: "Grace", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="sans-serif"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="sans-serif"]::before { content: "Sans Serif"; font-family: Arial, Helvetica, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="serif"]::before { content: "Serif"; font-family: Georgia, "Times New Roman", serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="monospace"]::before { content: "Monospace"; font-family: Consolas, Monaco, monospace; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="lorenco"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="lorenco"]::before { content: "Lorenco"; font-family: "Lorenco", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="capuletty"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="capuletty"]::before { content: "Capuletty"; font-family: "Capuletty", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="abram"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="abram"]::before { content: "Abram"; font-family: "Abram", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="grace"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="grace"]::before { content: "Grace"; font-family: "Grace", sans-serif; }
+
+.ql-snow .ql-picker.ql-font:not(.ql-expanded) .ql-picker-options .ql-picker-item[data-value="lorenco"],
+.ql-snow .ql-picker.ql-font:not(.ql-expanded) .ql-picker-options .ql-picker-item[data-value="capuletty"],
+.ql-snow .ql-picker.ql-font:not(.ql-expanded) .ql-picker-options .ql-picker-item[data-value="abram"],
+.ql-snow .ql-picker.ql-font:not(.ql-expanded) .ql-picker-options .ql-picker-item[data-value="grace"] {
+    display: none;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value] {
+    cursor: pointer;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item,
+.ql-snow .ql-picker.ql-font .ql-picker-item.ql-selected,
+.ql-snow .ql-picker.ql-font .ql-picker-item:hover,
+.ql-snow .ql-picker.ql-font .ql-picker-item.ql-active {
+    color: #444 !important;
+    background: transparent !important;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item .ql-fill,
+.ql-snow .ql-picker.ql-font .ql-picker-item .ql-stroke,
+.ql-snow .ql-picker.ql-font .ql-picker-item.ql-selected .ql-fill,
+.ql-snow .ql-picker.ql-font .ql-picker-item.ql-selected .ql-stroke,
+.ql-snow .ql-picker.ql-font .ql-picker-item:hover .ql-fill,
+.ql-snow .ql-picker.ql-font .ql-picker-item:hover .ql-stroke {
+    fill: #444 !important;
+    stroke: #444 !important;
+}
+
+/* Широкое окно: высота редактора; ширину не сужаем — используется --content-max и 100% */
+@media only screen and (min-width: 769px) {
+    main.editor-create {
+        min-height: 750px;
+    }
+
+    #editor-container {
+        min-height: 552px;
+    }
+
+    #editor-container .ql-editor {
+        min-height: 350px;
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* =========================
+   MOBILE / TABLET
+   ========================= */
+
+@media only screen and (max-width: 768px) {
+    main {
+        padding: 16px 8px 32px;
+    }
+
+    header {
+        padding: 10px 15px;
+        text-align: center;
+        background: linear-gradient(135deg, #d6d6d6, #c2c2c2);
+        box-shadow: none;
+    }
+
+    header h1 {
+        font-size: 1.6rem;
+        color: #222;
+    }
+
+    main.editor-create {
+        padding: 20px;
+        border-radius: 20px;
+        margin: 16px auto 32px;
+    }
+
+    main.editor-create > h2 {
+        font-size: 2rem;
+        margin-bottom: 18px;
+    }
+
+    .input-title {
+        font-size: 1rem;
+        padding: 14px 15px;
+    }
+
+    .editor-shell {
+        min-height: 480px;
+        border-radius: 18px;
+    }
+
+    /* Промежуточная ширина: не даём иконкам сжиматься до «овала», pickers — с разумным min-width */
+    .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn),
+    .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn),
+    .ql-toolbar .ql-post-bg-picker,
+    .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) {
+        flex-shrink: 0;
+    }
+
+    .ql-toolbar .ql-picker.ql-header {
+        flex-shrink: 0;
+    }
+
+    .ql-toolbar .ql-picker.ql-font {
+        flex-shrink: 0;
+        width: var(--font-picker-width) !important;
+        min-width: var(--font-picker-width) !important;
+        max-width: var(--font-picker-width) !important;
+    }
+
+    #editor-container .ql-editor {
+        min-height: 340px;
+        font-size: 1.08rem;
+        padding: 20px 18px 24px;
+    }
+
+    .post-content {
+        width: 100%;
+        max-width: 100%;
+        min-height: 200px;
+        padding: 24px 20px;
+        margin: 15px auto;
+        border: 1px solid #ddd;
+    }
+
+    .post-content h2 {
+        font-size: 1.8rem;
+    }
+
+    .content {
+        font-size: 1.08rem;
+        line-height: 1.65;
+    }
+
+    .title-separator {
+        height: 2px;
+        background: #bcb7b1;
+    }
+
+    .back-link {
+        font-size: 1rem;
+        color: #0056b3;
+    }
+
+    .back-link:hover {
+        color: #003d7a;
+        text-decoration: underline;
+    }
+
+    .post-date,
+    .post-views {
+        font-size: 1rem;
+        text-align: center;
+        margin-top: 0;
+    }
+
+    .post-document {
+        padding: 1.5rem 10px;
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    main.editor-create {
+        padding: 18px 14px;
+        border-radius: 18px;
+    }
+
+    main.editor-create > h2 {
+        font-size: 1.6rem;
+        line-height: 1.08;
+    }
+
+    .editor-shell {
+        min-height: 520px;
+        border-radius: 18px;
+    }
+
+    /* Тулбар: без отдельной «мобильной» схемы ≤480px — та же flex-раскладка и вид, что и выше. */
+
+    #editor-container .ql-editor {
+        min-height: 360px;
+        padding: 18px 16px 24px;
+        font-size: 1rem;
+        line-height: 1.65;
+    }
+
+    .ql-post-bg-popover {
+        max-height: min(72vh, 420px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .ql-post-bg-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+    }
+
+    .ql-post-bg-item {
+        width: 36px;
+        height: 36px;
+    }
+}

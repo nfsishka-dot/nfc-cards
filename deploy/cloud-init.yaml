@@ -1,0 +1,70 @@
+#cloud-config
+# =============================================================================
+#  Timeweb Cloud-init для VPS Ubuntu 22.04
+#
+#  Вставь содержимое этого файла в поле "User data" при создании сервера.
+#
+#  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+#  ОБЯЗАТЕЛЬНО ПЕРЕД ИСПОЛЬЗОВАНИЕМ:
+#  Замени оба URL ниже на реальные raw-ссылки на файлы в твоём репозитории.
+#
+#  Как получить raw URL на GitHub:
+#    1. Открой файл в репозитории на github.com
+#    2. Нажми кнопку "Raw" (справа над кодом)
+#    3. Скопируй URL из адресной строки браузера
+#
+#  Пример правильного URL:
+#    https://raw.githubusercontent.com/ВАШ_ЛОГИН/ВАШ_РЕПОЗИТОРИЙ/main/deploy/setup-vps.sh
+#
+#  Файлы в которых нужно заменить URL: строки с ВСТАВИТЬ_URL_СЮДА ниже.
+#  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+# =============================================================================
+
+# Лог cloud-init: /var/log/cloud-init-output.log
+
+runcmd:
+  # Ждём полной инициализации сети перед скачиванием
+  - sleep 10
+
+  # ── ШАГ 1: скачиваем и запускаем setup-vps.sh ─────────────────────────────
+  # ЗАМЕНИТЬ: вставь реальный raw GitHub URL до setup-vps.sh
+  - |
+    curl -fsSL \
+      "ВСТАВИТЬ_URL_СЮДА__setup-vps.sh" \
+      -o /root/setup-vps.sh \
+    && bash /root/setup-vps.sh > /root/setup-vps.log 2>&1 \
+    && echo "setup-vps.sh: OK" \
+    || echo "setup-vps.sh: FAILED — смотри /root/setup-vps.log"
+
+  # ── ШАГ 2: скачиваем deploy.sh (пользователь deploy создан на шаге 1) ─────
+  # ЗАМЕНИТЬ: вставь реальный raw GitHub URL до deploy.sh
+  - |
+    curl -fsSL \
+      "ВСТАВИТЬ_URL_СЮДА__deploy.sh" \
+      -o /var/www/app/deploy.sh \
+    && chmod +x /var/www/app/deploy.sh \
+    && chown deploy:deploy /var/www/app/deploy.sh \
+    && echo "deploy.sh: OK" \
+    || echo "deploy.sh: FAILED"
+
+final_message: |
+  =====================================================================
+  Сервер настроен. Лог установки: /root/setup-vps.log
+
+  Следующие шаги (подключись по SSH):
+    1. Отредактируй .env:
+         nano /var/www/app/current/.env
+         (замени MY_SERVER_IP на IP сервера или домен)
+
+    2. Загрузи код в /var/www/app/current/
+         # через scp:
+         scp -r sources/ deploy@IP:/var/www/app/current/
+         # или git clone вручную
+
+    3. Запусти деплой:
+         bash /var/www/app/deploy.sh
+
+    Если что-то пошло не так:
+         cat /root/setup-vps.log
+         journalctl -u app -n 30 --no-pager
+  =====================================================================

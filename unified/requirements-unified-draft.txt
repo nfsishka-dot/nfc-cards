@@ -1,0 +1,9 @@
+Django==4.2.11
+markdown==3.5.2
+Pillow==10.2.0
+bleach==6.2.0
+
+# from editor project
+flask
+flashsql
+msgpack

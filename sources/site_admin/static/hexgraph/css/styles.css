@@ -1,0 +1,3617 @@
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;700&display=swap');
+
+/* =========================
+   RESET / TOKENS
+   ========================= */
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+:root {
+    --bg: #fafafa;
+    --surface: rgba(255, 255, 255, 0.78);
+    --surface-strong: #ffffff;
+    --surface-soft: rgba(17, 24, 39, 0.04);
+    --surface-soft-2: rgba(17, 24, 39, 0.06);
+    --border: rgba(17, 24, 39, 0.08);
+    --border-strong: rgba(17, 24, 39, 0.10);
+    --text: #111827;
+    --muted: #6b7280;
+    --shadow-soft: 0 14px 40px rgba(0, 0, 0, 0.08);
+    --shadow-card: 0 40px 120px rgba(0, 0, 0, 0.10);
+    --radius-xl: 24px;
+    --radius-lg: 18px;
+    --radius-md: 14px;
+    --radius-sm: 12px;
+    --tap: 44px;
+    --toolbar-gap: 8px;
+    /* Ровно 2 квадратные кнопки + один gap между ними */
+    --font-picker-width: calc(2 * var(--tap) + var(--toolbar-gap));
+    --content-max: 1520px;
+}
+
+@font-face {
+    font-family: "Lorenco";
+    src: url("../fonts/Pag_Font4You.ttf") format("truetype");
+    font-display: swap;
+}
+@font-face {
+    font-family: "Capuletty";
+    src: url("../fonts/Capuletty_Font4You.ttf") format("truetype");
+    font-display: swap;
+}
+@font-face {
+    font-family: "Abram";
+    src: url("../fonts/Abram_Font4You.ttf") format("truetype");
+    font-display: swap;
+}
+@font-face {
+    font-family: "Grace";
+    src: url("../fonts/Lorenco_Font4You.ttf") format("truetype");
+    font-display: swap;
+}
+
+/* =========================
+   BASE
+   ========================= */
+
+html {
+    -webkit-text-size-adjust: 100%;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    position: relative;
+    direction: ltr;
+    text-align: left;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: none;
+    pointer-events: none;
+    z-index: -1;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
+/* =========================
+   HEADER / LAYOUT
+   ========================= */
+
+header {
+    background: transparent;
+    color: var(--text);
+    padding: 10px 18px;
+    text-align: left;
+    box-shadow: none;
+    position: static;
+    width: 100%;
+}
+
+header h1 {
+    margin: 0;
+    font-size: clamp(2rem, 4vw, 2.3rem);
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+}
+
+main {
+    padding: 32px 8px 48px;
+    position: relative;
+    z-index: 1;
+}
+
+.container {
+    width: 100%;
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* =========================
+   CREATE POST (прямые дети main — без .container / .form-section)
+   ========================= */
+
+main.editor-create {
+    width: 100%;
+    max-width: var(--content-max);
+    margin: 32px auto 48px;
+    height: auto;
+    min-height: 480px;
+    padding: 28px 10px;
+    box-sizing: border-box;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+}
+
+main.editor-create > h2 {
+    margin: 0 0 20px;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.05;
+    letter-spacing: -0.04em;
+    color: var(--text);
+}
+
+/* =========================
+   РЕДАКТОР: на весь экран по высоте/ширине (только editor.html)
+   ========================= */
+
+html.page-editor-html {
+    height: 100%;
+    min-height: 100%;
+    scroll-behavior: smooth;
+    /* Очень лёгкая «сцена»: тёплый градиент, почти незаметный */
+    background: radial-gradient(ellipse 125% 95% at 50% -8%, #f0eeea 0%, #faf9f7 45%, #f5f4f1 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.page-editor-html {
+        scroll-behavior: auto;
+    }
+}
+
+html.page-editor-html body.page-editor {
+    min-height: 100%;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    background: transparent;
+}
+
+/* Виньетка: мягкое затемнение к краям, фокус на центре */
+body.page-editor::before {
+    z-index: 0;
+    background: radial-gradient(ellipse 95% 90% at 50% 46%, transparent 38%, transparent 62%, rgba(24, 20, 16, 0.045) 100%);
+}
+
+body.page-editor main.editor-create {
+    position: relative;
+    z-index: 1;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+    max-width: min(var(--content-max), 100%);
+    margin: max(6px, env(safe-area-inset-top, 0px)) auto max(6px, env(safe-area-inset-bottom, 0px));
+    padding: 12px max(8px, env(safe-area-inset-right, 0px)) 12px max(8px, env(safe-area-inset-left, 0px));
+    box-sizing: border-box;
+}
+
+body.page-editor main.editor-create > h2 {
+    flex: 0 0 auto;
+}
+
+body.page-editor main.editor-create > h2.editor-page-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.editor-autosave-bar {
+    max-width: 920px;
+    margin: -6px auto 10px;
+    padding: 0 12px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 12px;
+}
+
+.editor-autosave-status {
+    margin: 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.75rem;
+    line-height: 1.35;
+    letter-spacing: 0.02em;
+    color: rgba(17, 24, 39, 0.42);
+    text-align: center;
+    min-height: 1.1em;
+    transition: color 0.2s ease;
+}
+
+.editor-autosave-actions {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.editor-autosave-retry {
+    margin: 0;
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    border-radius: 999px;
+    border: 1px solid rgba(37, 99, 235, 0.35);
+    background: rgba(255, 255, 255, 0.9);
+    color: rgba(29, 78, 216, 0.95);
+    cursor: pointer;
+}
+
+.editor-autosave-retry:hover {
+    background: rgba(239, 246, 255, 0.95);
+}
+
+.editor-autosave-status[data-state="idle"] {
+    color: rgba(17, 24, 39, 0.32);
+}
+
+.editor-autosave-status[data-state="dirty"] {
+    color: rgba(120, 53, 15, 0.72);
+}
+
+.editor-autosave-status[data-state="saving"] {
+    color: rgba(37, 99, 235, 0.85);
+}
+
+.editor-autosave-status[data-state="saved"] {
+    color: rgba(22, 101, 52, 0.72);
+}
+
+.editor-autosave-status[data-state="error"] {
+    color: rgba(185, 28, 28, 0.92);
+}
+
+.editor-autosave-status[data-state="offline"] {
+    color: rgba(120, 53, 15, 0.78);
+}
+
+.editor-draft-recover {
+    max-width: 920px;
+    margin: 0 auto 12px;
+    padding: 10px 12px;
+    border-radius: 14px;
+    border: 1px solid rgba(37, 99, 235, 0.22);
+    background: rgba(239, 246, 255, 0.65);
+    box-sizing: border-box;
+}
+
+.editor-draft-recover__text {
+    margin: 0 0 8px;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: rgba(17, 24, 39, 0.78);
+    text-align: center;
+}
+
+.editor-draft-recover__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+}
+
+.editor-draft-recover__btn {
+    margin: 0;
+    padding: 6px 14px;
+    font-size: 0.8125rem;
+    border-radius: 999px;
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    background: rgba(255, 255, 255, 0.92);
+    color: rgba(17, 24, 39, 0.82);
+    cursor: pointer;
+}
+
+.editor-draft-recover__btn--primary {
+    border-color: rgba(37, 99, 235, 0.4);
+    background: rgba(37, 99, 235, 0.92);
+    color: #fff;
+}
+
+.editor-draft-recover__btn--primary:hover {
+    background: rgba(29, 78, 216, 0.96);
+}
+
+body.page-editor main.editor-create > *:not(#editor-main-form) {
+    flex-shrink: 0;
+}
+
+body.page-editor #editor-main-form {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
+}
+
+body.page-editor .editor-shell {
+    flex: 1 1 auto;
+    min-height: 0;
+    align-items: stretch;
+    width: 100%;
+}
+
+body.page-editor .editor-submit-footer {
+    flex: 0 0 auto;
+    display: block;
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    text-align: center;
+    padding: 12px 12px max(14px, env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid rgba(17, 24, 39, 0.05);
+    background: rgba(252, 251, 249, 0.96);
+    border-radius: 0 0 20px 20px;
+}
+
+body.page-editor #editor-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    max-width: 100%;
+}
+
+body.page-editor #editor-container.ql-container {
+    display: flex !important;
+    flex-direction: column;
+}
+
+body.page-editor #editor-container .ql-editor {
+    flex: 1 1 auto;
+    min-height: 0;
+    border-radius: 0;
+    border-bottom: none;
+}
+
+.input-title {
+    width: 100%;
+    padding: 16px 18px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-md);
+    font-size: 1.05rem;
+    color: var(--text);
+    background: var(--surface-strong);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    margin-bottom: 18px;
+}
+
+.input-title:focus {
+    border-color: #b9b3aa;
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.04);
+}
+
+/* =========================
+   GENERIC BUTTONS
+   Avoid breaking toolbar buttons
+   ========================= */
+
+button:not(.ql-post-bg-picker):not(.ql-post-bg-item):not(.editor-submit-btn):not(.ql-picker-label):not(.ql-picker-item):not(.hg-help-modal__backdrop):not(.hg-help-modal__btn-close):not(.hg-help-modal__x) {
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+}
+
+/* =========================
+   EDITOR SHELL
+   ========================= */
+
+.editor-shell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 920px;
+    min-height: 540px;
+    margin: 0 auto;
+    border: 1px solid rgba(24, 20, 16, 0.06);
+    border-radius: 24px;
+    background: #fffefb;
+    /* «Лист» на столе: чуть теплее и глубже тень */
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 32px 100px rgba(24, 20, 16, 0.07),
+        0 8px 24px rgba(24, 20, 16, 0.04);
+    overflow: visible;
+}
+
+#editor-container {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 0 0 24px 24px;
+    overflow: hidden;
+}
+
+/* =========================
+   QUILL TOOLBAR
+   ========================= */
+
+.editor-shell > .ql-toolbar {
+    flex: 0 0 auto;
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+}
+
+/* Snow: .ql-formats { margin-right: 15px } и ::after clearfix ломают ровный gap — отключаем */
+.editor-shell .ql-toolbar.ql-snow::after,
+.editor-shell .ql-toolbar.ql-snow::before {
+    content: none !important;
+    display: none !important;
+}
+
+.ql-toolbar {
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    align-content: flex-start;
+    justify-content: center;
+    /* Один ряд контролов с естественным переносом; шаг только gap */
+    gap: var(--toolbar-gap);
+    background: rgba(255, 255, 255, 0.70);
+    border: none;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+    border-radius: 24px 24px 0 0;
+    padding: 12px 12px;
+    box-shadow: none;
+    backdrop-filter: blur(10px) saturate(1.1);
+    -webkit-backdrop-filter: blur(10px) saturate(1.1);
+    position: relative;
+    /* Важно: Quill dropdowns живут внутри тулбара и не могут "перепрыгнуть" его stacking context.
+       Держим тулбар выше холста, но ниже модалок/шейта. */
+    z-index: 5000;
+}
+
+/* Кнопка справки: привязана к правому-нижнему углу .editor-intro (а не к пикселям тулбара) */
+body.page-editor .editor-intro {
+    position: relative;
+}
+
+body.page-editor .editor-intro .ql-post-help {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 5;
+}
+
+/* Quill dropdowns must sit above the editor area */
+.editor-shell .ql-picker-options {
+    z-index: 5100;
+}
+
+.editor-shell .ql-container,
+.editor-shell .ql-editor {
+    position: relative;
+    z-index: 1;
+}
+
+.editor-shell .ql-toolbar button,
+.editor-shell .ql-toolbar .ql-picker-label,
+.editor-shell .ql-toolbar .ql-picker-item {
+    color: rgba(17, 24, 39, 0.72);
+}
+
+.editor-shell .ql-toolbar button:hover,
+.editor-shell .ql-toolbar .ql-picker-label:hover {
+    color: rgba(17, 24, 39, 0.92);
+}
+
+.editor-shell .ql-toolbar button:active {
+    transform: scale(0.98);
+}
+
+.editor-shell .ql-toolbar button:focus-visible,
+.editor-shell .ql-toolbar .ql-picker-label:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.10);
+    border-radius: 12px;
+}
+
+@keyframes hg-editor-ph-in {
+    from {
+        opacity: 0;
+        transform: translateY(2px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Placeholder: медленнее, мягче появление */
+body.page-editor #editor-container .ql-editor.ql-blank::before {
+    color: rgba(100, 94, 88, 0.72);
+    font-style: normal;
+    animation: hg-editor-ph-in 0.72s cubic-bezier(0.25, 0.9, 0.35, 1) 0.48s both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.page-editor #editor-container .ql-editor.ql-blank::before {
+        animation: none;
+    }
+
+    body.page-editor #editor-container .ql-editor,
+    body.post-preview-page .preview-moment__canvas .ql-editor {
+        scroll-behavior: auto;
+    }
+}
+
+/* Базовый контейнер для абсолютного dropdown Quill */
+.ql-toolbar .ql-picker {
+    position: relative;
+}
+
+/* Палитра подсветки текста (Quill background): первый пункт — снять подсветку; #ffffff — реальный белый */
+.ql-toolbar .ql-picker.ql-background .ql-picker-item.hg-ql-bg-clear {
+    background-color: #f3f4f6 !important;
+    background-image:
+        linear-gradient(45deg, #d1d5db 25%, transparent 25%),
+        linear-gradient(-45deg, #d1d5db 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #d1d5db 75%),
+        linear-gradient(-45deg, transparent 75%, #d1d5db 75%);
+    background-size: 8px 8px;
+    background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+}
+
+.ql-toolbar .ql-picker.ql-background .ql-picker-item[data-value="#ffffff"] {
+    background-color: #ffffff !important;
+    box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.28);
+}
+
+/*
+ * Возможные пробелы/переносы между прямыми детьми .ql-toolbar — анонимные flex-элементы.
+ * font-size: 0 схлопывает их; размер шрифта возвращаем у текста в контролах и попапах.
+ */
+.editor-shell .ql-toolbar {
+    font-size: 0;
+    line-height: 0;
+}
+
+.editor-shell .ql-toolbar .ql-font .ql-picker-label,
+.editor-shell .ql-toolbar .ql-font .ql-picker-item,
+.editor-shell .ql-toolbar .editor-submit-btn,
+.editor-shell .ql-toolbar .ql-picker-options,
+.editor-shell .ql-toolbar .ql-post-bg-popover {
+    font-size: 1rem;
+    line-height: normal;
+}
+
+/* Выпадающие панели не участвуют в ряду, но Snow может задать горизонтальный margin */
+.editor-shell .ql-toolbar .ql-picker-options {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+/*
+ * Margin не задаёт шаг ряда: только gap.
+ * Основной поток кнопок живёт в .ql-toolbar-tools; «Создать открытку» — отдельный блок справа.
+ */
+.editor-shell .ql-toolbar .ql-toolbar-tools > button,
+.editor-shell .ql-toolbar .ql-toolbar-tools > .ql-picker,
+.editor-shell .ql-toolbar .ql-toolbar-tools > .ql-picker .ql-picker-label,
+.editor-shell .ql-toolbar .ql-formats,
+.editor-shell .ql-toolbar .ql-formats > button,
+.editor-shell .ql-toolbar .ql-formats > .ql-picker,
+.editor-shell .ql-toolbar .ql-formats .ql-picker-label {
+    margin: 0 !important;
+}
+
+.editor-shell .ql-toolbar .ql-toolbar-tools {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--toolbar-gap);
+}
+
+/* Fallback для статичной разметки без split: мини-группы тоже flex+wrap */
+.editor-shell .ql-toolbar:not([data-toolbar-split]) .ql-formats {
+    display: flex !important;
+    flex-flow: row wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--toolbar-gap);
+    margin: 0 !important;
+    min-width: 0;
+}
+
+/* Snow: ::after clearfix у .ql-formats — лишний flex-элемент (только пока есть группы) */
+.editor-shell .ql-toolbar .ql-formats::after,
+.editor-shell .ql-toolbar .ql-formats::before {
+    content: none !important;
+    display: none !important;
+}
+
+/*
+ * Toolbar controls — три типа (квадратные кнопки, компактные picker, широкий ql-font).
+ */
+
+/* --- Type 1a: квадратные кнопки (после flatten — прямые дети тулбара; в fixture — внутри .ql-formats) --- */
+.editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn),
+.editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn) {
+    flex: 0 0 var(--tap);
+    box-sizing: border-box;
+    width: var(--tap);
+    min-width: var(--tap);
+    max-width: var(--tap);
+    height: var(--tap);
+    min-height: var(--tap);
+    padding: 0 !important;
+    border-radius: 13px !important;
+    border: 1px solid #e5e1db !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f3f1 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn) svg,
+.editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn) svg {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* --- Type 1b: фон-пикер — прямоугольная кнопка, цвет/картинка в круглом .ql-post-bg-picker-swatch (inline из JS) */
+.ql-toolbar .ql-post-bg-picker {
+    flex: 0 0 var(--tap);
+    box-sizing: border-box;
+    width: var(--tap) !important;
+    min-width: var(--tap) !important;
+    max-width: var(--tap) !important;
+    height: var(--tap) !important;
+    min-height: var(--tap) !important;
+    padding: 0 !important;
+    border-radius: 13px !important;
+    border: 1px solid #e5e1db !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f3f1 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.ql-toolbar .ql-post-bg-picker .ql-post-bg-picker-swatch {
+    display: block;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border-radius: 6px;
+    box-sizing: border-box;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35);
+    overflow: hidden;
+    pointer-events: none;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
+}
+
+/* --- Type 1d: заголовки (размер/уровень) — квадрат 44×44, не «длинный select» --- */
+.ql-toolbar .ql-picker.ql-header {
+    flex: 0 0 var(--tap);
+    width: var(--tap) !important;
+    min-width: var(--tap) !important;
+    max-width: var(--tap) !important;
+    height: var(--tap) !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box;
+    float: none !important;
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: var(--tap) !important;
+    padding: 0 3px !important;
+    border-radius: 13px !important;
+    border: 1px solid #e5e1db !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f3f1 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label svg {
+    display: none !important;
+}
+
+/* Перебиваем Quill Snow: подписи через ::before + убираем гигантские размеры в списке */
+.ql-toolbar .ql-picker.ql-header .ql-picker-label::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item::before {
+    content: 'aA' !important;
+    display: inline-block;
+    line-height: 1.1 !important;
+    font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label[data-value="1"]::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="1"]::before { content: 'aA 1' !important; }
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label[data-value="2"]::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="2"]::before { content: 'aA 2' !important; }
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label[data-value="3"]::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="3"]::before { content: 'aA 3' !important; }
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label[data-value="4"]::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="4"]::before { content: 'aA 4' !important; }
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-label[data-value="5"]::before,
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="5"]::before { content: 'aA 5' !important; }
+
+/*
+ * Пункт «Normal» (false) в меню не показываем — в Quill 2 это часто элемент без data-value,
+ * реже data-value="false" / "".
+ */
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value="false"],
+.ql-toolbar .ql-picker.ql-header .ql-picker-item[data-value=""],
+.ql-toolbar .ql-picker.ql-header .ql-picker-item:not([data-value]) {
+    display: none !important;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-options {
+    width: var(--tap) !important;
+    min-width: var(--tap) !important;
+    max-width: var(--tap) !important;
+    box-sizing: border-box;
+    padding: 6px 3px !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%);
+    margin-top: 6px;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-item {
+    padding: 6px 2px !important;
+    text-align: center;
+    border-radius: 10px;
+    line-height: 1.2;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-item:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-item.ql-selected {
+    background: rgba(0, 102, 204, 0.1);
+    color: inherit;
+}
+
+/* --- Type 1c: компактные pickers (align, color, background, …) — квадратная капсула --- */
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) {
+    flex: 0 0 var(--tap);
+    width: var(--tap) !important;
+    min-width: var(--tap) !important;
+    max-width: var(--tap) !important;
+    height: var(--tap) !important;
+    display: flex !important;
+    align-items: center !important;
+    box-sizing: border-box;
+}
+
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label {
+    box-sizing: border-box;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    height: 100% !important;
+    min-height: var(--tap) !important;
+    padding: 0 !important;
+    border-radius: 13px !important;
+    border: 1px solid #e5e1db !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f3f1 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label svg {
+    width: 18px !important;
+    height: 18px !important;
+    flex-shrink: 0;
+    display: block;
+}
+
+/* --- Type 2: пикер шрифта — фиксированная ширина = 2×кнопка + gap (не от текста и не от вьюпорта) --- */
+.ql-toolbar .ql-picker.ql-font {
+    flex: 0 0 var(--font-picker-width);
+    width: var(--font-picker-width) !important;
+    min-width: var(--font-picker-width) !important;
+    max-width: var(--font-picker-width) !important;
+    height: var(--tap) !important;
+    display: flex !important;
+    align-items: stretch !important;
+    box-sizing: border-box;
+}
+
+.ql-toolbar .ql-picker.ql-font .ql-picker-label {
+    box-sizing: border-box;
+    flex: 1;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: var(--tap) !important;
+    height: var(--tap) !important;
+    padding: 0 22px 0 8px !important;
+    border-radius: 13px !important;
+    border: 1px solid #e5e1db !important;
+    background: linear-gradient(180deg, #ffffff 0%, #f4f3f1 100%) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    justify-content: flex-start !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
+.editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn):hover,
+.editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn):hover,
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label:hover,
+.ql-toolbar .ql-picker.ql-header .ql-picker-label:hover,
+.ql-toolbar .ql-picker.ql-font .ql-picker-label:hover {
+    background: linear-gradient(180deg, #ffffff 0%, #efedea 100%) !important;
+    border-color: #d8d2c9 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    transform: translateY(-1px);
+}
+
+.ql-toolbar .ql-post-bg-picker:hover {
+    background: linear-gradient(180deg, #ffffff 0%, #efedea 100%) !important;
+    border-color: #d8d2c9 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+    transform: translateY(-1px);
+}
+
+.editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn):active,
+.editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn):active,
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label:active,
+.ql-toolbar .ql-picker.ql-header .ql-picker-label:active,
+.ql-toolbar .ql-picker.ql-font .ql-picker-label:active {
+    transform: translateY(0);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+.ql-toolbar .ql-post-bg-picker:active {
+    transform: translateY(0);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+}
+
+.editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn).ql-active,
+.editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn).ql-active,
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label.ql-active,
+.ql-toolbar .ql-picker.ql-header .ql-picker-label.ql-active,
+.ql-toolbar .ql-picker.ql-font .ql-picker-label.ql-active,
+.ql-toolbar .ql-picker:not(.ql-font):not(.ql-header).ql-expanded .ql-picker-label,
+.ql-toolbar .ql-picker.ql-header.ql-expanded .ql-picker-label,
+.ql-toolbar .ql-picker.ql-font.ql-expanded .ql-picker-label {
+    background: linear-gradient(180deg, #ece9e4 0%, #e4e0da 100%) !important;
+    border-color: #cec7bd !important;
+}
+
+/* Редактор (страница): спокойный «плоский» тулбар поверх кастомизации Quill */
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn),
+body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn),
+body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker {
+    background: #f4f4f5 !important;
+    border: 1px solid rgba(17, 24, 39, 0.08) !important;
+    box-shadow: none !important;
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header .ql-picker-label,
+body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label,
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label {
+    background: #f4f4f5 !important;
+    border: 1px solid rgba(17, 24, 39, 0.08) !important;
+    box-shadow: none !important;
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn):hover,
+body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn):hover,
+body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker:hover,
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header .ql-picker-label:hover,
+body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label:hover,
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label:hover {
+    background: #ececee !important;
+    border-color: rgba(17, 24, 39, 0.11) !important;
+    box-shadow: none !important;
+    transform: translateY(-1px);
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn).ql-active,
+body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn).ql-active,
+body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label.ql-active,
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header .ql-picker-label.ql-active,
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label.ql-active,
+body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header).ql-expanded .ql-picker-label,
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header.ql-expanded .ql-picker-label,
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font.ql-expanded .ql-picker-label {
+    background: #e4e4e7 !important;
+    border-color: rgba(17, 24, 39, 0.14) !important;
+    box-shadow: none !important;
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn):active,
+body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn):active,
+body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker:active,
+body.page-editor .editor-shell .ql-toolbar .ql-picker .ql-picker-label:active {
+    transform: scale(0.97);
+    box-shadow: none !important;
+}
+
+/* Picker dropdown */
+.ql-toolbar .ql-picker-options {
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+    background: #fff;
+    padding: 8px;
+    z-index: 1200;
+    max-width: calc(100vw - 16px);
+    box-sizing: border-box;
+}
+
+.ql-toolbar .ql-picker-item {
+    border-radius: 10px;
+}
+
+/* Выпадающее меню выравнивания: иконки по центру ширины панели (не прижаты влево) */
+.ql-toolbar .ql-picker.ql-align.ql-expanded .ql-picker-options {
+    display: flex !important;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 6px !important;
+    box-sizing: border-box;
+}
+
+.ql-toolbar .ql-picker.ql-align .ql-picker-item {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    float: none !important;
+}
+
+/* Кнопка предпросмотра (под редактором или в тулбаре на других страницах) */
+.editor-shell .editor-submit-btn {
+    width: auto !important;
+    min-width: 148px !important;
+    max-width: min(100%, calc(100vw - 32px));
+    height: auto !important;
+    min-height: 52px !important;
+    padding: 10px 22px !important;
+    font-size: 0;
+    font-weight: 650;
+    line-height: 1;
+    white-space: normal;
+    float: none !important;
+    color: #fff;
+    background: #111827 !important;
+    border: 1px solid rgba(17, 24, 39, 0.2) !important;
+    border-radius: 16px !important;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 10px 28px rgba(17, 24, 39, 0.16) !important;
+    cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.25, 0.9, 0.35, 1), box-shadow 0.4s cubic-bezier(0.25, 0.9, 0.35, 1), filter 0.35s cubic-bezier(0.25, 0.9, 0.35, 1);
+    display: inline-flex !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+
+.editor-shell .editor-submit-btn__main {
+    display: block;
+    font-size: 0.9375rem;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    line-height: 1.25;
+    max-width: 14rem;
+}
+
+.editor-shell .editor-submit-btn__sub {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    opacity: 0.7;
+    line-height: 1.3;
+    max-width: 14rem;
+}
+
+.editor-shell .editor-submit-btn:hover {
+    transform: translateY(-1.5px) scale(1.004);
+    filter: brightness(1.03);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08) inset, 0 14px 36px rgba(17, 24, 39, 0.2) !important;
+}
+
+.editor-shell .editor-submit-btn:active {
+    transform: scale(0.992);
+    transition-duration: 0.12s;
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 6px 18px rgba(17, 24, 39, 0.14) !important;
+}
+
+.editor-shell .editor-submit-btn:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.2),
+        0 0 0 5px rgba(17, 24, 39, 0.07),
+        0 0 28px rgba(17, 24, 39, 0.1),
+        0 10px 28px rgba(17, 24, 39, 0.14) !important;
+}
+
+body.page-editor .editor-submit-footer .editor-submit-btn {
+    display: inline-block !important;
+    vertical-align: middle;
+}
+
+#editor-container table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#editor-container th,
+#editor-container td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+/* =========================
+   QUILL EDITOR AREA
+   ========================= */
+
+body.page-editor #editor-container .ql-editor {
+    font-size: 1.0625rem;
+    line-height: 1.68;
+    letter-spacing: -0.01em;
+    /* Теплее чистого чёрного — ощущение чернил/письма */
+    color: rgba(28, 25, 22, 0.93);
+    caret-color: #6b5346;
+    padding: 30px 22px 42px;
+    scroll-behavior: smooth;
+}
+
+body.page-editor .editor-shell .ql-toolbar {
+    background: rgba(255, 255, 255, 0.52);
+    border-bottom-color: rgba(17, 24, 39, 0.045);
+}
+
+body.page-editor .editor-shell .ql-toolbar button,
+body.page-editor .editor-shell .ql-toolbar .ql-picker-label,
+body.page-editor .editor-shell .ql-toolbar .ql-picker-item {
+    color: rgba(17, 24, 39, 0.55);
+}
+
+body.page-editor .editor-shell .ql-toolbar button:hover,
+body.page-editor .editor-shell .ql-toolbar .ql-picker-label:hover {
+    color: rgba(17, 24, 39, 0.84);
+}
+
+#editor-container .ql-editor {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: 100%;
+    min-height: 300px;
+    overflow-y: auto;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    cursor: text;
+    -webkit-user-select: text;
+    user-select: text;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: var(--text);
+    padding: 24px 11px 30px;
+    background-color: #fafafa;
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0 0 18px 18px;
+    box-shadow: none;
+}
+
+#editor-container.post-bg-active .ql-editor {
+    background-color: transparent !important;
+}
+
+/* Фон редактора — отдельный базовый слой под контентом */
+body.page-editor #editor-container {
+    position: relative;
+}
+
+body.page-editor #editor-container::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    z-index: 0;
+    background-color: var(--hg-editor-bg-color, transparent);
+    background-image: var(--hg-editor-bg-image, none);
+    background-size: var(--hg-editor-bg-size, cover);
+    background-position: var(--hg-editor-bg-position, center);
+    background-repeat: var(--hg-editor-bg-repeat, no-repeat);
+    pointer-events: none;
+}
+
+body.page-editor #editor-container .ql-editor {
+    position: relative;
+    z-index: 1;
+}
+
+body.page-editor #editor-container.post-bg-active:not(.editor-pattern-bg)::before {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+body.page-editor #editor-container.post-bg-active.editor-pattern-bg::before {
+    background-size: 300px 300px;
+    background-position: 0 0;
+    background-repeat: repeat;
+}
+
+.ql-editor a {
+    color: #0066cc;
+    text-decoration: none;
+    transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.ql-editor a:hover {
+    color: #004080;
+    text-decoration: underline;
+}
+
+.ql-editor h1,
+.ql-editor h2,
+.ql-editor h3,
+.ql-editor h4,
+.ql-editor h5,
+.ql-editor h6 {
+    color: var(--text);
+    margin-top: 20px;
+    margin-bottom: 10px;
+    font-weight: 400;
+}
+
+/* Уровни aA1–aA5 (Quill Header): 1.25× относительно quill.snow.css (2em / 1.5em / 1.17em / 1em / 0.83em / 0.67em) */
+.ql-snow .ql-editor h1 {
+    font-size: 2.5em;
+}
+
+.ql-snow .ql-editor h2 {
+    font-size: 1.875em;
+}
+
+.ql-snow .ql-editor h3 {
+    font-size: 1.4625em;
+}
+
+.ql-snow .ql-editor h4 {
+    font-size: 1.25em;
+}
+
+.ql-snow .ql-editor h5 {
+    font-size: 1.0375em;
+}
+
+.ql-snow .ql-editor h6 {
+    font-size: 0.8375em;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
+    font-size: 2.5em;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
+    font-size: 1.875em;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
+    font-size: 1.4625em;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before {
+    font-size: 1.25em;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"]::before {
+    font-size: 1.0375em;
+}
+
+.ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before {
+    font-size: 0.8375em;
+}
+
+.ql-editor ul,
+.ql-editor ol {
+    margin-left: 20px;
+    padding-left: 10px;
+}
+
+.ql-editor li {
+    margin-bottom: 10px;
+    line-height: 1.6;
+}
+
+/* =========================
+   IMAGE STYLES
+   ========================= */
+
+.ql-editor img,
+.post-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    display: block;
+    margin: 0 auto 12px;
+}
+
+/* PNG с прозрачностью: лёгкая «шахматка», чтобы видеть альфу (editor/preview/post) */
+.ql-editor img.hg-img--png,
+.content img.hg-img--png,
+.post-content img.hg-img--png {
+    background-color: #fafafa;
+    background-image:
+        linear-gradient(45deg, rgba(17, 24, 39, 0.08) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(17, 24, 39, 0.08) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(17, 24, 39, 0.08) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(17, 24, 39, 0.08) 75%);
+    background-size: 12px 12px;
+    background-position: 0 0, 0 6px, 6px -6px, -6px 0;
+    background-repeat: repeat;
+    /* PNG с альфой + шахматка: тень выглядит как «грязь» по краям */
+    box-shadow: none;
+}
+
+/* На случай base64 PNG (паста/inline) и PNG по url: также убираем тень */
+.ql-editor img[src^="data:image/png"],
+.content img[src^="data:image/png"],
+.post-content img[src^="data:image/png"],
+.ql-editor img[src$=".png"],
+.content img[src$=".png"],
+.post-content img[src$=".png"] {
+    box-shadow: none;
+}
+
+.post-content img {
+    max-width: 90%;
+}
+
+.ql-editor img.ql-image-align-left,
+.ql-editor img.ql-image-align-center,
+.ql-editor img.ql-image-align-right,
+.content img.ql-image-align-left,
+.content img.ql-image-align-center,
+.content img.ql-image-align-right {
+    max-width: fit-content !important;
+}
+
+.ql-editor img.ql-image-align-left,
+.content img.ql-image-align-left {
+    float: left !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+.ql-editor img.ql-image-align-center,
+.content img.ql-image-align-center {
+    float: none !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.ql-editor img.ql-image-align-right,
+.content img.ql-image-align-right {
+    float: right !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+.ql-editor p.ql-align-left img.ql-image-align-left,
+.ql-editor div.ql-align-left img.ql-image-align-left,
+.ql-editor p.ql-align-center img.ql-image-align-left,
+.ql-editor div.ql-align-center img.ql-image-align-left,
+.ql-editor p.ql-align-right img.ql-image-align-left,
+.ql-editor div.ql-align-right img.ql-image-align-left,
+.content p.ql-align-left img.ql-image-align-left,
+.content div.ql-align-left img.ql-image-align-left,
+.content p.ql-align-center img.ql-image-align-left,
+.content div.ql-align-center img.ql-image-align-left,
+.content p.ql-align-right img.ql-image-align-left,
+.content div.ql-align-right img.ql-image-align-left {
+    float: left !important;
+    margin-left: 0 !important;
+    margin-right: auto !important;
+}
+
+.ql-editor p.ql-align-left img.ql-image-align-center,
+.ql-editor div.ql-align-left img.ql-image-align-center,
+.ql-editor p.ql-align-center img.ql-image-align-center,
+.ql-editor div.ql-align-center img.ql-image-align-center,
+.ql-editor p.ql-align-right img.ql-image-align-center,
+.ql-editor div.ql-align-right img.ql-image-align-center,
+.content p.ql-align-left img.ql-image-align-center,
+.content div.ql-align-left img.ql-image-align-center,
+.content p.ql-align-center img.ql-image-align-center,
+.content div.ql-align-center img.ql-image-align-center,
+.content p.ql-align-right img.ql-image-align-center,
+.content div.ql-align-right img.ql-image-align-center {
+    float: none !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+.ql-editor p.ql-align-left img.ql-image-align-right,
+.ql-editor div.ql-align-left img.ql-image-align-right,
+.ql-editor p.ql-align-center img.ql-image-align-right,
+.ql-editor div.ql-align-center img.ql-image-align-right,
+.ql-editor p.ql-align-right img.ql-image-align-right,
+.ql-editor div.ql-align-right img.ql-image-align-right,
+.content p.ql-align-left img.ql-image-align-right,
+.content div.ql-align-left img.ql-image-align-right,
+.content p.ql-align-center img.ql-image-align-right,
+.content div.ql-align-center img.ql-image-align-right,
+.content p.ql-align-right img.ql-image-align-right,
+.content div.ql-align-right img.ql-image-align-right {
+    float: right !important;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+}
+
+/* Image resize overlay */
+#image-resize-overlay {
+    display: none;
+    position: absolute;
+    box-sizing: border-box;
+    border: 2px solid #06c;
+    pointer-events: none;
+    z-index: 10;
+}
+
+#image-resize-overlay.active {
+    display: block;
+    pointer-events: none;
+}
+
+#image-resize-overlay .image-delete-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 44px;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+    border: none;
+    border-radius: 10px;
+    background: rgba(17, 24, 39, 0.88);
+    color: #fff;
+    font-size: 1.5rem;
+    line-height: 1;
+    font-weight: 300;
+    cursor: pointer;
+    touch-action: manipulation;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+#image-resize-overlay .image-delete-btn:hover {
+    background: rgba(185, 28, 28, 0.95);
+}
+
+#image-resize-overlay .image-delete-btn:active {
+    transform: scale(0.96);
+}
+
+#image-resize-overlay .resize-handle {
+    position: absolute;
+    right: -8px;
+    bottom: -8px;
+    width: 44px;
+    height: 44px;
+    box-sizing: border-box;
+    padding: 0;
+    border: none;
+    background: rgba(0, 102, 204, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+    color: #fff;
+    cursor: se-resize;
+    touch-action: none;
+    pointer-events: auto;
+    -webkit-tap-highlight-color: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#image-resize-overlay .resize-handle svg {
+    display: block;
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+#image-resize-overlay .resize-handle.resize-handle--dragging {
+    cursor: grabbing;
+}
+
+body.is-resizing-editor-image {
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Горизонтальный drag картинки на touch: без вертикального скролла страницы */
+.ql-editor img.ql-image-touch-dragging {
+    touch-action: none;
+    position: relative;
+    z-index: 2;
+}
+
+/* Выделение картинки: одна рамка через #image-resize-overlay (без второго outline на img) */
+
+/* =========================
+   BACKGROUND PICKER
+   ========================= */
+
+/* Координаты top/left задаёт JS под кнопкой .ql-post-bg-picker (как .ql-picker-options у цвета текста) */
+.ql-post-bg-popover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 7000;
+    width: min(360px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    max-height: 70vh;
+    box-sizing: border-box;
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    box-shadow: 0 18px 36px rgba(0, 0, 0, 0.15);
+    padding: 14px;
+    backdrop-filter: blur(8px);
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.post-bg-color-picker-mount {
+    width: 100%;
+    max-width: 100%;
+}
+
+/* Bottom sheet стили удалены: используем один anchored popover и на desktop, и на mobile. */
+
+.ql-post-bg-section {
+    margin-bottom: 12px;
+}
+
+.ql-post-bg-section:last-child {
+    margin-bottom: 0;
+}
+
+/* Ровно 4 плитки в строку, ширина ряда = ширина поповера (padding поповера не меняем) */
+.ql-post-bg-popover .ql-post-bg-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+}
+
+.ql-post-bg-popover .ql-post-bg-item {
+    width: 100%;
+    min-width: 0;
+    height: 44px;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box;
+    border-radius: 12px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    overflow: hidden;
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.ql-post-bg-popover .ql-post-bg-item__thumb {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+}
+
+.ql-post-bg-popover .ql-post-bg-item.ql-post-bg-active {
+    border-color: #06c;
+}
+
+/* =========================
+   EDITOR HELP MODAL (toolbar «?»)
+   ========================= */
+
+.hg-help-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9200;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding:
+        max(12px, env(safe-area-inset-top, 0px))
+        max(14px, env(safe-area-inset-right, 0px))
+        max(12px, env(safe-area-inset-bottom, 0px))
+        max(14px, env(safe-area-inset-left, 0px));
+    display: none;
+    place-items: center;
+    isolation: isolate;
+}
+
+.hg-help-modal:not([hidden]) {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+}
+
+.hg-help-modal__backdrop {
+    grid-row: 1;
+    grid-column: 1;
+    place-self: stretch;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    background: rgba(15, 23, 42, 0.48);
+    backdrop-filter: blur(8px) saturate(1.05);
+    -webkit-backdrop-filter: blur(8px) saturate(1.05);
+}
+
+.hg-help-modal__panel {
+    grid-row: 1;
+    grid-column: 1;
+    position: relative;
+    z-index: 1;
+    place-self: center;
+    width: min(100%, 520px);
+    max-width: 100%;
+    max-height: min(88vh, 720px);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fffefb;
+    color: var(--text);
+    border: 1px solid rgba(24, 20, 16, 0.08);
+    border-radius: 22px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9) inset,
+        0 28px 80px rgba(24, 20, 16, 0.14),
+        0 10px 28px rgba(24, 20, 16, 0.08);
+}
+
+.hg-help-modal__head {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 18px 18px 12px;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+}
+
+.hg-help-modal__head-text {
+    min-width: 0;
+}
+
+.hg-help-modal__title {
+    margin: 0;
+    font-size: 1.12rem;
+    font-weight: 750;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+    color: var(--text);
+}
+
+.hg-help-modal__lede {
+    margin: 6px 0 0;
+    font-size: 0.86rem;
+    line-height: 1.4;
+    color: rgba(17, 24, 39, 0.62);
+}
+
+.hg-help-modal__x {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    margin: -6px -6px 0 0;
+    padding: 0;
+    border-radius: 12px;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    background: rgba(255, 255, 255, 0.85);
+    color: rgba(17, 24, 39, 0.55);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.hg-help-modal__x:hover {
+    background: #fff;
+    color: rgba(17, 24, 39, 0.85);
+    border-color: rgba(17, 24, 39, 0.12);
+}
+
+.hg-help-modal__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    padding: 10px 14px 4px;
+}
+
+.hg-help-modal__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.hg-help-modal__row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 4px;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.05);
+}
+
+.hg-help-modal__row:last-child {
+    border-bottom: none;
+}
+
+.hg-help-modal__swatch {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--font-picker-width);
+    pointer-events: none;
+}
+
+/* Мини-оболочка: те же селекторы .editor-shell .ql-toolbar, без «листа» 540px */
+.hg-help-modal__fake-shell {
+    width: auto !important;
+    max-width: none !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+    display: block !important;
+}
+
+/*
+ * Только сброс «полосы» тулбара: без второй белой подложки.
+ * Сами кнопки/пикеры — те же классы и переменные, что у .editor-shell .ql-toolbar.
+ */
+.hg-help-modal__fake-shell > .ql-toolbar {
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    border-bottom: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    justify-content: center !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    position: relative !important;
+    z-index: auto !important;
+}
+
+.hg-help-modal__fake-shell .ql-toolbar-tools {
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0 !important;
+}
+
+.hg-help-modal__desc {
+    flex: 1 1 auto;
+    min-width: 0;
+    margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.38;
+    letter-spacing: -0.01em;
+    color: rgba(17, 24, 39, 0.88);
+}
+
+.hg-help-modal__foot {
+    flex: 0 0 auto;
+    padding: 12px 16px max(14px, env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid rgba(17, 24, 39, 0.06);
+    background: rgba(252, 251, 249, 0.96);
+}
+
+.hg-help-modal__btn-close {
+    width: 100%;
+    height: 48px;
+    border-radius: 14px;
+    border: 1px solid rgba(17, 24, 39, 0.1);
+    background: #111827;
+    color: #fff;
+    font-size: 0.94rem;
+    font-weight: 650;
+    cursor: pointer;
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.hg-help-modal__btn-close:active {
+    transform: scale(0.99);
+}
+
+@media (min-width: 600px) {
+    .hg-help-modal__panel {
+        width: min(100%, 480px);
+        border-radius: 24px;
+    }
+
+    .hg-help-modal__head {
+        padding: 20px 22px 14px;
+    }
+
+    .hg-help-modal__scroll {
+        padding: 12px 18px 6px;
+    }
+
+    .hg-help-modal__row {
+        gap: 18px;
+        padding: 11px 6px;
+    }
+
+    .hg-help-modal__desc {
+        font-size: 0.93rem;
+    }
+}
+
+@media (min-width: 900px) {
+    .hg-help-modal__panel {
+        width: min(100%, 520px);
+        max-height: min(82vh, 680px);
+    }
+}
+
+@media (max-width: 380px) {
+    .hg-help-modal {
+        padding:
+            max(8px, env(safe-area-inset-top, 0px))
+            max(10px, env(safe-area-inset-right, 0px))
+            max(8px, env(safe-area-inset-bottom, 0px))
+            max(10px, env(safe-area-inset-left, 0px));
+    }
+
+    .hg-help-modal__head {
+        padding: 14px 14px 10px;
+    }
+
+    .hg-help-modal__scroll {
+        padding: 8px 10px 2px;
+    }
+
+    .hg-help-modal__row {
+        gap: 10px;
+        padding: 8px 2px;
+    }
+
+    .hg-help-modal__desc {
+        font-size: 0.86rem;
+    }
+}
+
+/* Пока открыта справка — не даём скроллить страницу под модалкой */
+html.hg-help-open,
+body.hg-help-open {
+    overflow: hidden !important;
+}
+
+/* Live preview в редакторе (картинка на #editor-container) */
+#editor-container.post-bg-active {
+    background-image: none !important;
+}
+
+#editor-container.post-bg-active.editor-pattern-bg {
+    background-image: none !important;
+}
+
+.post-document.post-bg-active .ql-snow,
+.post-document.post-bg-active .ql-editor {
+    background: transparent !important;
+}
+
+/* =========================
+   CONTENT / POST VIEW
+   ========================= */
+
+.post-content {
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-soft);
+}
+
+.post-content h2 {
+    font-size: 2.2rem;
+    color: var(--text);
+}
+
+.title-separator {
+    border: 0;
+    height: 2px;
+    background: #d4d0cb;
+    margin: 20px 0;
+}
+
+.content {
+    font-size: 1.2rem;
+    line-height: 1.7;
+    color: var(--text);
+}
+
+.content.ql-editor {
+    font-family: inherit;
+}
+
+.content h1,
+.content h2,
+.content h3,
+.content h4,
+.content h5,
+.content h6 {
+    font-weight: 400;
+}
+
+.back-link {
+    display: block;
+    margin: 20px 0;
+    text-align: right;
+    font-size: 1rem;
+    color: var(--text);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.back-link:hover {
+    color: #111;
+}
+
+.post-date,
+.post-views {
+    font-size: 1rem;
+    color: #777;
+    font-style: italic;
+}
+
+.post-date {
+    margin-bottom: 20px;
+    text-align: right;
+}
+
+.post-views {
+    margin: 0 0 10px;
+    text-align: left;
+}
+
+/* Post-only view */
+body.post-view::before {
+    display: none;
+}
+
+/* Фон поста задаётся на body при post-bg-active (полная высота вьюпорта); иначе белая страница */
+body.post-view {
+    min-height: 100vh;
+    min-height: 100dvh;
+    box-sizing: border-box;
+}
+
+body.post-view:not(.post-bg-active) {
+    background: #fff;
+}
+
+/* Контент поверх фона без собственного белого слоя */
+body.post-view.post-bg-active .post-document {
+    background: transparent !important;
+}
+
+.post-document {
+    width: 100%;
+    max-width: var(--content-max);
+    margin: 0 auto;
+    padding: 2rem 8px;
+    box-sizing: border-box;
+}
+
+.post-document.post-bg-active {
+    background: transparent !important;
+}
+
+@keyframes post-preview-enter {
+    from {
+        opacity: 0;
+        transform: scale(0.992) translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+html.post-preview-html {
+    scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html.post-preview-html {
+        scroll-behavior: auto;
+    }
+}
+
+/* Едва заметная «бумага»: точечный grain, без фильтров SVG */
+body.post-preview-page {
+    position: relative;
+}
+
+body.post-preview-page::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.35;
+    background-image: radial-gradient(rgba(30, 26, 22, 0.09) 0.4px, transparent 0.5px);
+    background-size: 3px 3px;
+    mix-blend-mode: multiply;
+}
+
+/* Страница предпросмотра: контент не уходит под фиксированную панель */
+body.post-preview-page main.post-document {
+    position: relative;
+    z-index: 1;
+    padding-top: 3rem;
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    animation: post-preview-enter 0.95s cubic-bezier(0.2, 0.85, 0.35, 1) both;
+}
+
+/* Предпросмотр: страница и main — нейтральный фон; кастомный фон только на карточке */
+body.post-preview-page main.post-preview-document {
+    background: #fff !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.post-preview-page main.post-document {
+        animation: none;
+    }
+}
+
+/* Предпросмотр: один тихий заголовок, больше воздуха */
+.preview-moment {
+    max-width: 42rem;
+    margin: 0 auto 2.25rem;
+    padding: 0 20px;
+    text-align: center;
+}
+
+.preview-moment__title {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+    color: rgba(17, 24, 39, 0.36);
+}
+
+/* «Карточка в центре мира»: воздух, мягкая тень, лёгкое стекло */
+.preview-moment__canvas {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: clamp(26px, 5.5vw, 44px) clamp(20px, 4.5vw, 36px);
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.75) inset,
+        0 28px 90px rgba(24, 20, 16, 0.08),
+        0 10px 28px rgba(24, 20, 16, 0.04);
+    backdrop-filter: blur(14px) saturate(1.06);
+    -webkit-backdrop-filter: blur(14px) saturate(1.06);
+}
+
+/* Кастомный цвет/картинка задаётся инлайном на карточке — без «стекла» поверх */
+body.post-preview-page .preview-moment__canvas--custom {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border-color: rgba(24, 20, 16, 0.1);
+    background: transparent;
+}
+
+/* Контент внутри карточки — без лишних рамок Snow */
+body.post-preview-page .preview-moment__canvas .ql-editor {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    scroll-behavior: smooth;
+}
+
+.post-preview-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 2000;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: rgba(252, 252, 251, 0.72);
+    border-top: 1px solid rgba(17, 24, 39, 0.05);
+    box-shadow: 0 -1px 0 rgba(255, 255, 255, 0.55) inset, 0 -18px 44px rgba(0, 0, 0, 0.045);
+    backdrop-filter: blur(18px) saturate(1.04);
+    -webkit-backdrop-filter: blur(18px) saturate(1.04);
+}
+
+.post-preview-bar__inner {
+    max-width: var(--content-max);
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+}
+
+.post-preview-bar__form {
+    margin: 0;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.post-preview-bar__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    min-width: 140px;
+    padding: 0 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 14px;
+    text-decoration: none;
+    box-sizing: border-box;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), filter 0.25s ease, box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.post-preview-bar__btn--primary {
+    background: #111827;
+    color: #fff;
+    border: 1px solid rgba(17, 24, 39, 0.15);
+    box-shadow: 0 8px 20px rgba(17, 24, 39, 0.15);
+}
+
+.post-preview-bar__btn--primary:hover {
+    filter: brightness(1.05);
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: 0 12px 28px rgba(17, 24, 39, 0.2);
+}
+
+.post-preview-bar__btn--primary:active {
+    transform: scale(0.98);
+}
+
+.post-preview-bar__btn--secondary {
+    background: rgba(17, 24, 39, 0.04);
+    color: rgba(17, 24, 39, 0.82);
+    border: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.post-preview-bar__btn--secondary:hover {
+    background: rgba(17, 24, 39, 0.06);
+    filter: none;
+}
+
+@media only screen and (max-width: 480px) {
+    .post-preview-bar__inner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .post-preview-bar__form {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .post-preview-bar__btn {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+/* =========================
+   PREVIEW: подтверждение публикации
+   ========================= */
+
+body.preview-modal-open {
+    overflow: hidden;
+}
+
+.preview-confirm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 4500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    padding-bottom: max(20px, env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
+}
+
+.preview-confirm-modal.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.preview-confirm-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(17, 24, 39, 0.48);
+    backdrop-filter: blur(14px) saturate(1.1);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+}
+
+.preview-confirm-modal__panel {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+    max-height: min(calc(100vh - 40px), calc(100dvh - 40px));
+    overflow: auto;
+    margin: auto;
+    padding: 28px 28px 24px;
+    background: #fafafa;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    border-radius: 24px;
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.75) inset,
+        0 40px 120px rgba(0, 0, 0, 0.26);
+    transform: scale(0.96) translateY(12px);
+    opacity: 0;
+    transition:
+        transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.28s ease;
+    -webkit-overflow-scrolling: touch;
+}
+
+.preview-confirm-modal.is-open .preview-confirm-modal__panel {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+.preview-confirm-modal__title {
+    margin: 0 0 14px;
+    font-size: 1.35rem;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+    line-height: 1.25;
+    color: #111827;
+}
+
+.preview-confirm-modal__text {
+    margin: 0 0 26px;
+    font-size: 1.02rem;
+    line-height: 1.7;
+    color: #71717a;
+}
+.preview-confirm-modal__text--tight {
+    margin-bottom: 14px;
+}
+.preview-confirm-modal__panel--wide {
+    max-width: 480px;
+}
+.preview-confirm-modal__pw.hg-welcome__pw-block {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.preview-confirm-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: flex-end;
+}
+
+.preview-confirm-modal__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    min-width: 132px;
+    padding: 0 22px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: inherit;
+    border-radius: 14px;
+    cursor: pointer;
+    border: none;
+    box-sizing: border-box;
+    transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.preview-confirm-modal__btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.12);
+}
+.preview-confirm-modal__btn:active {
+    transform: scale(0.98);
+}
+
+.preview-confirm-modal__btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.preview-confirm-modal__btn--secondary {
+    background: rgba(17, 24, 39, 0.04);
+    color: rgba(17, 24, 39, 0.82);
+    border: 1px solid rgba(17, 24, 39, 0.10);
+}
+
+.preview-confirm-modal__btn--secondary:hover:not(:disabled) {
+    background: rgba(17, 24, 39, 0.06);
+    transform: translateY(-1px);
+}
+
+.preview-confirm-modal__btn--primary {
+    background: linear-gradient(180deg, #111827 0%, #0b1220 100%);
+    color: #fff;
+    border: 1px solid rgba(17, 24, 39, 0.18);
+    box-shadow: 0 12px 28px rgba(17, 24, 39, 0.22);
+}
+
+.preview-confirm-modal__btn--primary:hover:not(:disabled) {
+    filter: brightness(1.03);
+    transform: translateY(-1px) scale(1.01);
+}
+
+.preview-confirm-modal__fineprint {
+    margin: 14px 0 0;
+    font-size: 0.86rem;
+    line-height: 1.6;
+    color: rgba(17, 24, 39, 0.62);
+    letter-spacing: -0.01em;
+}
+
+.preview-confirm-modal__fineprint--trust {
+    margin-top: 8px;
+    color: rgba(17, 24, 39, 0.56);
+}
+
+@media only screen and (max-width: 480px) {
+    .preview-confirm-modal {
+        align-items: flex-end;
+        padding: 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .preview-confirm-modal__panel {
+        max-width: 100%;
+        max-height: min(88vh, 88dvh);
+        margin: 0;
+        border-radius: 20px 20px 0 0;
+        padding: 24px 20px max(20px, env(safe-area-inset-bottom, 0px));
+        transform: translateY(100%);
+    }
+
+    .preview-confirm-modal.is-open .preview-confirm-modal__panel {
+        transform: translateY(0);
+    }
+
+    .preview-confirm-modal__actions {
+        flex-direction: column-reverse;
+        justify-content: stretch;
+    }
+
+    .preview-confirm-modal__btn {
+        width: 100%;
+        min-width: 0;
+    }
+}
+
+/* =========================
+   FONT PICKER MAPPINGS
+   ========================= */
+
+.ql-editor .ql-font-sans-serif { font-family: Arial, Helvetica, sans-serif; }
+.ql-editor .ql-font-serif { font-family: Georgia, "Times New Roman", serif; }
+.ql-editor .ql-font-monospace { font-family: Consolas, Monaco, "Courier New", monospace; }
+.ql-editor .ql-font-lorenco { font-family: "Lorenco", sans-serif; }
+.ql-editor .ql-font-capuletty { font-family: "Capuletty", sans-serif; }
+.ql-editor .ql-font-abram { font-family: "Abram", sans-serif; }
+.ql-editor .ql-font-grace { font-family: "Grace", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="sans-serif"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="sans-serif"]::before { content: "Purity"; font-family: Arial, Helvetica, sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="serif"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="serif"]::before { content: "Romano"; font-family: Georgia, "Times New Roman", serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="monospace"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="monospace"]::before { content: "Monoline"; font-family: Consolas, Monaco, monospace; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="lorenco"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="lorenco"]::before { content: "Sorana"; font-family: "Lorenco", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="capuletty"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="capuletty"]::before { content: "Musette"; font-family: "Capuletty", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="abram"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="abram"]::before { content: "Nobles"; font-family: "Abram", sans-serif; }
+
+.ql-snow .ql-picker.ql-font .ql-picker-label[data-value="grace"]::before,
+.ql-snow .ql-picker.ql-font.ql-expanded .ql-picker-item[data-value="grace"]::before { content: "Gracia"; font-family: "Grace", sans-serif; }
+
+/* Premium dropdown presentation (font picker) */
+.ql-snow .ql-picker.ql-font {
+    width: 100%;
+    min-width: 0;
+}
+
+.ql-snow .ql-toolbar .ql-picker.ql-font {
+    width: var(--font-picker-width);
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-options {
+    width: 100%;
+    min-width: 100%;
+    box-sizing: border-box;
+    padding: 6px 6px;
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.08);
+    overflow-x: hidden;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-label,
+.ql-snow .ql-picker.ql-font .ql-picker-item {
+    box-sizing: border-box;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    line-height: 1;
+    height: 34px;
+    padding: 0 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    letter-spacing: 0.01em;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item:hover {
+    background: rgba(17, 24, 39, 0.04) !important;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item.ql-selected {
+    background: rgba(17, 24, 39, 0.06) !important;
+}
+
+/* Tone down aggressive display fonts in the list (curated, no shouting) */
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="fdispf"],
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="fdisph"],
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value="fdispi"] {
+    font-size: 12px;
+}
+
+.ql-snow .ql-picker.ql-font:not(.ql-expanded) .ql-picker-options .ql-picker-item[data-value="lorenco"],
+.ql-snow .ql-picker.ql-font:not(.ql-expanded) .ql-picker-options .ql-picker-item[data-value="capuletty"],
+.ql-snow .ql-picker.ql-font:not(.ql-expanded) .ql-picker-options .ql-picker-item[data-value="abram"],
+.ql-snow .ql-picker.ql-font:not(.ql-expanded) .ql-picker-options .ql-picker-item[data-value="grace"] {
+    display: none;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item[data-value] {
+    cursor: pointer;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item,
+.ql-snow .ql-picker.ql-font .ql-picker-item.ql-selected,
+.ql-snow .ql-picker.ql-font .ql-picker-item:hover,
+.ql-snow .ql-picker.ql-font .ql-picker-item.ql-active {
+    color: #444 !important;
+    background: transparent !important;
+}
+
+.ql-snow .ql-picker.ql-font .ql-picker-item .ql-fill,
+.ql-snow .ql-picker.ql-font .ql-picker-item .ql-stroke,
+.ql-snow .ql-picker.ql-font .ql-picker-item.ql-selected .ql-fill,
+.ql-snow .ql-picker.ql-font .ql-picker-item.ql-selected .ql-stroke,
+.ql-snow .ql-picker.ql-font .ql-picker-item:hover .ql-fill,
+.ql-snow .ql-picker.ql-font .ql-picker-item:hover .ql-stroke {
+    fill: #444 !important;
+    stroke: #444 !important;
+}
+
+/* =========================
+   EDITOR TOP SECTION (intro + steps)
+   ========================= */
+
+.editor-intro {
+    margin: 10px auto 12px;
+    max-width: min(var(--content-max), 980px);
+    padding: 14px 16px;
+    border-radius: 18px;
+    border: 1px solid rgba(17, 24, 39, 0.07);
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: blur(12px) saturate(1.08);
+    -webkit-backdrop-filter: blur(12px) saturate(1.08);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* Левый блок: заголовок + подзаголовок */
+.editor-intro__body {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.editor-intro__title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    color: rgba(17, 24, 39, 0.9);
+}
+.editor-intro__lede {
+    margin: 4px 0 0;
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: rgba(17, 24, 39, 0.54);
+}
+
+/* Правый блок: шаги (1 → 2 → 3) */
+.editor-intro__steps {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.editor-intro__step {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 30px;
+    padding: 0 10px 0 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    background: rgba(255, 255, 255, 0.8);
+    color: rgba(17, 24, 39, 0.72);
+    font-size: 12px;
+    white-space: nowrap;
+}
+.editor-intro__step-num {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(17, 24, 39, 0.07);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10.5px;
+    font-weight: 600;
+    line-height: 1;
+    color: rgba(17, 24, 39, 0.52);
+    flex-shrink: 0;
+}
+.editor-intro__step-label {
+    font-size: 12px;
+    color: rgba(17, 24, 39, 0.68);
+}
+/* Разделитель-стрелка между шагами */
+.editor-intro__step-arrow {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    opacity: 0.28;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M4.5 2.5L7.5 6L4.5 9.5' stroke='%23111827' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Широкое окно: высота редактора; ширину не сужаем — используется --content-max и 100% */
+@media only screen and (min-width: 769px) {
+    main.editor-create {
+        min-height: 750px;
+    }
+
+    body.page-editor main.editor-create {
+        min-height: 0;
+    }
+
+    #editor-container {
+        min-height: 552px;
+    }
+
+    body.page-editor #editor-container {
+        min-height: 0;
+    }
+
+    #editor-container .ql-editor {
+        min-height: 350px;
+        width: 100%;
+        max-width: 100%;
+    }
+
+    body.page-editor #editor-container .ql-editor {
+        min-height: 0;
+    }
+}
+
+/* =========================
+   MOBILE / TABLET
+   ========================= */
+
+@media only screen and (max-width: 768px) {
+    /* Mobile-first: крупные тапы и меньше плотности (только редактор) */
+    body.page-editor {
+        touch-action: manipulation;
+    }
+
+    body.page-editor :root,
+    body.page-editor-html :root,
+    body.page-editor-html {
+        --tap: 44px;
+        --toolbar-gap: 8px;
+        --font-picker-width: calc(2 * var(--tap) + var(--toolbar-gap));
+    }
+
+    main {
+        padding: 16px 8px 32px;
+    }
+
+    header {
+        padding: 10px 15px;
+        text-align: center;
+        background: linear-gradient(135deg, #d6d6d6, #c2c2c2);
+        box-shadow: none;
+    }
+
+    header h1 {
+        font-size: 1.6rem;
+        color: #222;
+    }
+
+    main.editor-create {
+        padding: 20px;
+        border-radius: 20px;
+        margin: 16px auto 32px;
+    }
+
+    main.editor-create > h2 {
+        font-size: 2rem;
+        margin-bottom: 18px;
+    }
+
+    .input-title {
+        font-size: 1rem;
+        padding: 14px 15px;
+    }
+
+    .editor-shell {
+        min-height: 480px;
+        border-radius: 18px;
+    }
+
+    body.page-editor .editor-shell {
+        min-height: 0;
+    }
+
+    /* Toolbar: 2 строки при нехватке ширины, по центру (touch-friendly) */
+    body.page-editor .editor-shell .ql-toolbar {
+        padding: 10px 8px !important;
+        border-radius: 18px 18px 0 0;
+        overscroll-behavior: contain;
+        overflow: visible;
+    }
+
+    /* Справка не должна жить внутри тулбара на мобиле */
+    body.page-editor .editor-shell .ql-post-help {
+        display: none !important;
+    }
+
+    .editor-intro {
+        margin: 8px auto 10px;
+        padding: 10px 12px;
+        border-radius: 18px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .editor-intro__steps {
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    .editor-intro__title {
+        font-size: 14px;
+    }
+    .editor-intro__lede {
+        font-size: 12px;
+    }
+    .editor-intro__step {
+        height: 28px;
+        padding: 0 8px 0 6px;
+        font-size: 11.5px;
+    }
+    .editor-intro__step-num {
+        width: 16px;
+        height: 16px;
+        font-size: 10px;
+    }
+
+    body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools {
+        flex-wrap: wrap;
+        justify-content: center;
+        align-content: center;
+        overflow: visible;
+        padding: 2px 4px;
+        row-gap: var(--toolbar-gap);
+    }
+
+    /* Никаких snap/scroll — чтобы dropdown не "уезжал" и не становился невидимым */
+
+    /* CTA: фиксированная нижняя зона (не перекрывает safe-area) */
+    body.page-editor .editor-submit-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 50;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    /* Background popover: компактный anchored dropdown, внутри скролл при необходимости */
+    body.page-editor .ql-post-bg-popover {
+        width: min(340px, calc(100vw - 24px));
+        max-height: 65vh;
+        padding: 12px;
+    }
+
+    /* Промежуточная ширина: не даём иконкам сжиматься до «овала», pickers — с разумным min-width */
+    .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn),
+    .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn),
+    .ql-toolbar .ql-post-bg-picker,
+    .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) {
+        flex-shrink: 0;
+    }
+
+    .ql-toolbar .ql-picker.ql-header {
+        flex-shrink: 0;
+    }
+
+    .ql-toolbar .ql-picker.ql-font {
+        flex-shrink: 0;
+        width: var(--font-picker-width) !important;
+        min-width: var(--font-picker-width) !important;
+        max-width: var(--font-picker-width) !important;
+    }
+
+    #editor-container .ql-editor {
+        min-height: 340px;
+        font-size: 1.08rem;
+        padding: 20px 18px 24px;
+    }
+
+    /* Не даём .ql-editor схлопнуться в «полоску» во flex-колонке при узком dynamic viewport (клавиатура) */
+    body.page-editor #editor-container .ql-editor {
+        min-height: clamp(12rem, 42dvh, 22rem);
+    }
+
+    .post-content {
+        width: 100%;
+        max-width: 100%;
+        min-height: 200px;
+        padding: 24px 20px;
+        margin: 15px auto;
+        border: 1px solid #ddd;
+    }
+
+    .post-content h2 {
+        font-size: 1.8rem;
+    }
+
+    .content {
+        font-size: 1.08rem;
+        line-height: 1.65;
+    }
+
+    .title-separator {
+        height: 2px;
+        background: #bcb7b1;
+    }
+
+    .back-link {
+        font-size: 1rem;
+        color: #0056b3;
+    }
+
+    .back-link:hover {
+        color: #003d7a;
+        text-decoration: underline;
+    }
+
+    .post-date,
+    .post-views {
+        font-size: 1rem;
+        text-align: center;
+        margin-top: 0;
+    }
+
+    .post-document {
+        padding: 1.5rem 10px;
+    }
+}
+
+/* Touch-first UX should apply regardless of screen width (tablets / landscape) */
+@media (hover: none) and (pointer: coarse) {
+    body.page-editor {
+        touch-action: manipulation;
+    }
+
+    body.page-editor-html {
+        --tap: 48px;
+        --toolbar-gap: 10px;
+        --font-picker-width: calc(2 * var(--tap) + var(--toolbar-gap));
+    }
+
+    body.page-editor .editor-shell .ql-toolbar {
+        padding: 10px 8px !important;
+        overscroll-behavior: contain;
+        overflow: visible;
+    }
+
+    body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools {
+        flex-wrap: wrap;
+        justify-content: center;
+        align-content: center;
+        overflow: visible;
+        padding: 2px 4px;
+        row-gap: var(--toolbar-gap);
+    }
+
+    body.page-editor .editor-submit-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 50;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    body.page-editor .ql-post-bg-popover {
+        width: min(340px, calc(100vw - 24px));
+        max-height: 65vh;
+        padding: 12px;
+    }
+
+}
+
+@media only screen and (max-width: 480px) {
+    main.editor-create {
+        padding: 18px 14px;
+        border-radius: 18px;
+    }
+
+    main.editor-create > h2 {
+        font-size: 1.6rem;
+        line-height: 1.08;
+    }
+
+    .editor-shell {
+        min-height: 520px;
+        border-radius: 18px;
+    }
+
+    body.page-editor .editor-shell {
+        min-height: 0;
+    }
+
+    /* Тулбар: без отдельной «мобильной» схемы ≤480px — та же flex-раскладка и вид, что и выше. */
+
+    #editor-container .ql-editor {
+        min-height: 360px;
+        padding: 18px 16px 24px;
+        font-size: 1rem;
+        line-height: 1.65;
+    }
+
+    .ql-post-bg-popover {
+        max-height: min(72vh, 420px);
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .ql-post-bg-popover .ql-post-bg-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .ql-post-bg-popover .ql-post-bg-item {
+        height: 44px;
+        margin: 0;
+        padding: 0;
+    }
+}
+
+/* =========================
+   РЕДАКТОР — телефоны: полноширинный main, скролл документа при клавиатуре (без vh-trap)
+   (перекрывает общие main { padding } и main.editor-create { margin })
+   ========================= */
+
+@media only screen and (max-width: 768px) {
+    /*
+     * Клавиатура: не фиксируем документ по высоте viewport и не режем overflow —
+     * иначе flex с min-height:0 сжимает .ql-editor до полоски, скролл страницы ломается.
+     */
+    html.page-editor-html {
+        height: auto;
+        min-height: 100%;
+        min-height: 100dvh;
+        overflow-x: hidden;
+        max-height: none;
+    }
+
+    body.page-editor {
+        height: auto;
+        min-height: 100%;
+        min-height: 100dvh;
+        overflow-x: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        max-height: none;
+    }
+
+    body.page-editor main {
+        padding: 0 !important;
+        margin: 0 !important;
+        flex: 1 1 auto;
+        min-height: 0;
+        max-width: 100% !important;
+        width: 100% !important;
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.page-editor main.editor-create {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: max(4px, env(safe-area-inset-top, 0px)) max(6px, env(safe-area-inset-right, 0px)) 0 max(6px, env(safe-area-inset-left, 0px)) !important;
+        border-radius: 0;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+        backdrop-filter: none;
+    }
+
+    body.page-editor main.editor-create > h2 {
+        margin-top: 2px;
+        margin-bottom: 8px;
+        font-size: clamp(1.2rem, 4.8vw, 1.65rem);
+        line-height: 1.15;
+    }
+
+    body.page-editor #editor-main-form {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+    }
+
+    body.page-editor .editor-shell {
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        max-width: 100%;
+        border-radius: 14px;
+    }
+
+    body.page-editor .editor-submit-footer {
+        border-radius: 0 0 14px 14px;
+        flex-shrink: 0;
+    }
+
+    body.page-editor .ql-toolbar {
+        border-radius: 14px 14px 0 0;
+    }
+
+    /* Компактнее тулбар на телефоне: меньше вертикальный «съём» высоты */
+    body.page-editor .editor-shell .ql-toolbar {
+        padding: 8px 6px !important;
+    }
+
+    body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools {
+        padding: 1px 2px;
+        row-gap: 6px;
+    }
+
+    /* При открытой клавиатуре класс вешает JS (visualViewport); плавно ужимаем верх страницы */
+    body.page-editor.page-editor--keyboard-open main.editor-create > h2:not(.editor-page-title) {
+        margin-bottom: 4px;
+        font-size: clamp(1.05rem, 4.2vw, 1.4rem);
+    }
+
+    body.page-editor.page-editor--keyboard-open .editor-autosave-bar {
+        margin-top: 0;
+        margin-bottom: 6px;
+    }
+
+    body.page-editor.page-editor--keyboard-open .editor-intro {
+        margin: 4px auto 6px;
+        padding: 8px 10px;
+    }
+
+    body.page-editor.page-editor--keyboard-open .editor-intro__lede {
+        font-size: 11.5px;
+        line-height: 1.35;
+        margin-top: 2px;
+    }
+
+    body.page-editor.page-editor--keyboard-open .editor-intro__steps {
+        display: none;
+    }
+
+    body.page-editor.page-editor--keyboard-open .editor-shell .ql-toolbar {
+        padding: 6px 5px !important;
+    }
+
+    body.page-editor.page-editor--keyboard-open .editor-shell .ql-toolbar .ql-toolbar-tools {
+        row-gap: 5px;
+    }
+}
+
+@supports (-webkit-touch-callout: none) {
+    @media only screen and (max-width: 768px) {
+        html.page-editor-html {
+            min-height: -webkit-fill-available;
+        }
+
+        body.page-editor {
+            min-height: -webkit-fill-available;
+        }
+    }
+}
+
+@media only screen and (max-width: 480px) {
+    body.page-editor main.editor-create > h2 {
+        margin-bottom: 6px;
+    }
+
+    body.page-editor .editor-submit-footer {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+
+    body.page-editor .editor-shell .editor-submit-btn {
+        max-width: calc(100vw - 24px);
+        box-sizing: border-box;
+    }
+}
+
+/* ---------- Редактор: приветственное модальное окно ---------- */
+.hg-welcome {
+    position: fixed;
+    inset: 0;
+    z-index: 5000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    box-sizing: border-box;
+    background: rgba(17, 24, 39, 0.48);
+    backdrop-filter: blur(14px) saturate(1.1);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+}
+.hg-welcome[hidden],
+.hg-welcome.hg-welcome--closed {
+    display: none !important;
+}
+.hg-welcome__dialog {
+    width: 100%;
+    max-width: 520px;
+    max-height: min(92vh, 880px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background: #fafafa;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    border-radius: 24px;
+    box-shadow:
+        0 40px 120px rgba(0, 0, 0, 0.28),
+        0 1px 0 rgba(255, 255, 255, 0.75) inset;
+    transform: scale(0.96) translateY(12px);
+    opacity: 0;
+    animation: hg-modal-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.hg-welcome.hg-welcome--closed .hg-welcome__dialog {
+    animation: none;
+}
+@keyframes hg-modal-in {
+    from {
+        transform: scale(0.96) translateY(12px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+.hg-welcome__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 32px 32px 24px;
+    -webkit-overflow-scrolling: touch;
+}
+.hg-welcome__brand {
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: rgba(17, 24, 39, 0.55);
+    margin: 0 0 10px;
+}
+.hg-welcome__title {
+    font-size: 1.55rem;
+    font-weight: 650;
+    line-height: 1.25;
+    color: #111827;
+    margin: 0 0 14px;
+    letter-spacing: -0.03em;
+}
+.hg-welcome__text {
+    font-size: 0.98rem;
+    line-height: 1.7;
+    color: #71717a;
+    margin: 0 0 12px;
+}
+.hg-welcome__list {
+    margin: 0 0 16px;
+    padding-left: 1.1rem;
+    font-size: 0.95rem;
+    line-height: 1.65;
+    color: rgba(17, 24, 39, 0.78);
+}
+.hg-welcome__list li {
+    margin-bottom: 8px;
+}
+.hg-welcome__notice {
+    margin: 0 0 18px;
+    padding: 14px 16px;
+    background: rgba(245, 158, 11, 0.12);
+    border: 1px solid rgba(245, 158, 11, 0.26);
+    border-radius: 16px;
+    font-size: 0.92rem;
+    line-height: 1.65;
+    color: rgba(120, 53, 15, 0.95);
+}
+.hg-welcome__notice strong {
+    display: block;
+    margin-bottom: 6px;
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: rgba(146, 64, 14, 0.92);
+}
+.hg-welcome__pw-block {
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+.hg-welcome__pw-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+.hg-welcome__pw-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+.hg-welcome__switch {
+    position: relative;
+    width: 44px;
+    height: 26px;
+    flex-shrink: 0;
+    cursor: pointer;
+}
+.hg-welcome__switch input {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    cursor: pointer;
+}
+.hg-welcome__switch-ring {
+    position: relative;
+    display: block;
+    width: 44px;
+    height: 26px;
+    border-radius: 999px;
+    border: 1px solid rgba(17, 24, 39, 0.16);
+    background: rgba(17, 24, 39, 0.08);
+    box-sizing: border-box;
+    transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+    pointer-events: none;
+}
+.hg-welcome__switch-ring::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow:
+        0 10px 24px rgba(17, 24, 39, 0.12),
+        0 1px 0 rgba(255, 255, 255, 0.8) inset;
+    transform: translateX(0);
+    transition: transform 0.18s ease;
+}
+.hg-welcome__switch input:focus-visible + .hg-welcome__switch-ring {
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.12);
+}
+.hg-welcome__switch input:checked + .hg-welcome__switch-ring {
+    background: rgba(17, 24, 39, 0.92);
+    border-color: rgba(17, 24, 39, 0.35);
+}
+.hg-welcome__switch input:checked + .hg-welcome__switch-ring::before {
+    transform: translateX(18px);
+}
+.hg-welcome__pw-label {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: rgba(17, 24, 39, 0.88);
+    line-height: 1.35;
+    cursor: pointer;
+    user-select: none;
+}
+.hg-welcome__help {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid rgba(17, 24, 39, 0.12);
+    background: rgba(255, 255, 255, 0.9);
+    color: rgba(17, 24, 39, 0.6);
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: transform 0.12s ease, background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+.hg-welcome__help:hover {
+    border-color: rgba(17, 24, 39, 0.22);
+    color: rgba(17, 24, 39, 0.78);
+    background: rgba(255, 255, 255, 1);
+    transform: translateY(-1px);
+}
+.hg-welcome__tooltip {
+    margin: 10px 0 0;
+    padding: 12px 14px;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    color: rgba(17, 24, 39, 0.72);
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(17, 24, 39, 0.08);
+    border-radius: 14px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.10);
+}
+.hg-welcome__tooltip[hidden] {
+    display: none !important;
+}
+.hg-welcome__pw-fields {
+    margin-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transform: translateY(-6px);
+    pointer-events: none;
+    transition: max-height 0.22s ease, opacity 0.18s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.hg-welcome__pw-fields.is-open {
+    max-height: 240px;
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+.hg-welcome__field-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b6560;
+    margin-bottom: 6px;
+    display: block;
+}
+.hg-welcome__field-wrap {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    border-radius: 14px;
+    overflow: hidden;
+    background: #f9fafb;
+    transition: box-shadow 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+.hg-welcome__field-wrap:focus-within {
+    border-color: rgba(17, 24, 39, 0.18);
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.10);
+}
+.hg-welcome__field-wrap input {
+    flex: 1;
+    border: none;
+    padding: 12px 14px;
+    font-size: 1rem;
+    min-width: 0;
+    outline: none;
+    background: transparent;
+    color: rgba(17, 24, 39, 0.92);
+}
+.hg-welcome__eye {
+    flex-shrink: 0;
+    width: 46px;
+    border: none;
+    background: rgba(17, 24, 39, 0.05);
+    cursor: pointer;
+    color: rgba(17, 24, 39, 0.62);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    transition: background 0.12s ease, color 0.12s ease;
+}
+.hg-welcome__eye:hover {
+    background: rgba(17, 24, 39, 0.08);
+    color: rgba(17, 24, 39, 0.80);
+}
+.hg-welcome__field-error {
+    font-size: 0.82rem;
+    color: #b91c1c;
+    margin: -4px 0 0;
+    min-height: 1.1em;
+}
+.hg-welcome__status {
+    font-size: 0.82rem;
+    color: #475569;
+    margin: 8px 0 0;
+}
+.hg-welcome__footer {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 24px 24px;
+    border-top: 1px solid rgba(17, 24, 39, 0.08);
+    background: rgba(250, 250, 250, 0.85);
+}
+.hg-welcome__footer--single .hg-welcome__btn {
+    width: 100%;
+    max-width: none;
+}
+.hg-welcome__actions {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 10px;
+}
+@media (min-width: 480px) {
+    .hg-welcome__actions {
+        flex-direction: row;
+        justify-content: stretch;
+    }
+    .hg-welcome__btn {
+        flex: 1;
+    }
+}
+.hg-welcome__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 18px;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease, background 0.14s ease;
+}
+.hg-welcome__btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.12);
+}
+.hg-welcome__btn:active {
+    transform: scale(0.98);
+}
+.hg-welcome__btn--ghost {
+    background: rgba(17, 24, 39, 0.04);
+    color: rgba(17, 24, 39, 0.82);
+    border: 1px solid rgba(17, 24, 39, 0.10);
+}
+.hg-welcome__btn--ghost:hover {
+    background: rgba(17, 24, 39, 0.06);
+    transform: translateY(-1px);
+}
+.hg-welcome__btn--primary {
+    background: linear-gradient(180deg, #111827 0%, #0b1220 100%);
+    color: #fff;
+    box-shadow: 0 12px 28px rgba(17, 24, 39, 0.22);
+}
+.hg-welcome__btn--primary:hover {
+    filter: brightness(1.03);
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 16px 40px rgba(17, 24, 39, 0.26);
+}
+.hg-welcome__btn--primary:active {
+    transform: scale(0.98);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hg-welcome *,
+    .preview-confirm-modal * {
+        transition: none !important;
+        animation: none !important;
+        scroll-behavior: auto !important;
+    }
+}
+.hg-welcome__panel--confirm .hg-welcome__footer {
+    padding-top: 20px;
+}
+
+/* ---------- Страница ввода пароля к открытке ---------- */
+.post-unlock-page {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: #fafafa;
+    font-family: 'Montserrat', system-ui, sans-serif;
+}
+.post-unlock-shell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    box-sizing: border-box;
+}
+.post-unlock-card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 34px 30px;
+    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.10);
+    border: 1px solid rgba(17, 24, 39, 0.08);
+}
+.post-unlock-eyebrow {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(17, 24, 39, 0.55);
+    margin: 0 0 10px;
+    font-weight: 600;
+}
+.post-unlock-title {
+    font-size: 1.35rem;
+    margin: 0 0 12px;
+    line-height: 1.3;
+    color: #111827;
+    font-weight: 650;
+    letter-spacing: -0.03em;
+}
+.post-unlock-lead {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #6b7280;
+    margin: 0 0 22px;
+}
+.post-unlock-alert {
+    font-size: 0.88rem;
+    color: rgba(153, 27, 27, 0.92);
+    margin: 0 0 14px;
+    padding: 10px 12px;
+    background: rgba(153, 27, 27, 0.06);
+    border: 1px solid rgba(153, 27, 27, 0.12);
+    border-radius: 14px;
+}
+.post-unlock-label {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: rgba(17, 24, 39, 0.55);
+    margin-bottom: 8px;
+}
+.post-unlock-input-row {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid rgba(17, 24, 39, 0.10);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 18px;
+    background: #f9fafb;
+    transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+.post-unlock-input-row:focus-within {
+    border-color: rgba(17, 24, 39, 0.18);
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.10);
+}
+.post-unlock-input {
+    flex: 1;
+    border: none;
+    padding: 14px 16px;
+    font-size: 1rem;
+    outline: none;
+    min-width: 0;
+    background: transparent;
+    color: rgba(17, 24, 39, 0.92);
+}
+.post-unlock-eye {
+    width: 48px;
+    flex-shrink: 0;
+    border: none;
+    background: rgba(17, 24, 39, 0.05);
+    cursor: pointer;
+    color: rgba(17, 24, 39, 0.62);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s ease, color 0.12s ease, transform 0.12s ease;
+}
+.post-unlock-eye:hover {
+    background: rgba(17, 24, 39, 0.08);
+    color: rgba(17, 24, 39, 0.82);
+    transform: translateY(-1px);
+}
+.post-unlock-submit {
+    width: 100%;
+    min-height: 48px;
+    border: none;
+    border-radius: 16px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    color: #fff;
+    background: #111827;
+    box-shadow: 0 12px 28px rgba(17, 24, 39, 0.22);
+    transition: transform 0.14s ease, filter 0.14s ease, box-shadow 0.14s ease;
+}
+.post-unlock-submit:hover {
+    filter: brightness(1.03);
+    transform: translateY(-1px) scale(1.01);
+    box-shadow: 0 16px 40px rgba(17, 24, 39, 0.26);
+}
+.post-unlock-submit:active {
+    transform: scale(0.98);
+}
+.post-unlock-submit:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.12), 0 16px 40px rgba(17, 24, 39, 0.26);
+}

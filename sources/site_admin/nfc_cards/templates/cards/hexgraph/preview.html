@@ -1,0 +1,252 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru" class="post-preview-html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'hexgraph/css/styles.css' %}?v=20260415-9">
+    <link rel="stylesheet" href="{% static 'hexgraph/css/fonts.css' %}?v=20260415-1">
+    <title>Просмотр</title>
+</head>
+<body class="post-view post-preview-page">
+    {% if messages %}
+    {% for message in messages %}
+    <p style="color:#b91c1c;font-size:0.875rem;margin:0.5rem 12px;text-align:center" role="alert">{{ message }}</p>
+    {% endfor %}
+    {% endif %}
+    <main class="post-document post-preview-document">
+        <header class="preview-moment" aria-label="Просмотр">
+            <p class="preview-moment__title">Так увидит человек</p>
+        </header>
+        <div class="ql-snow preview-moment__canvas{% if background %} preview-moment__canvas--custom{% endif %}{% if background and background.type == 'pattern' %} preview-moment__canvas--pattern{% endif %}"
+            {% if background and background.type == 'color' %}
+                style="background-color: {{ background.value }};"
+            {% elif background and background.type == 'image' %}
+                style="background-image: url('{{ background_url }}'); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: min(58vh, 480px);"
+            {% elif background and background.type == 'pattern' and background_url %}
+                style="background-image: url('{{ background_url }}'); background-size: 300px 300px; background-repeat: repeat; background-position: 0 0; min-height: min(58vh, 480px);"
+            {% endif %}
+        >
+            <div class="content ql-editor">{{ content | safe }}</div>
+        </div>
+    </main>
+
+    <footer class="post-preview-bar" role="region" aria-label="Действия предпросмотра">
+        <div class="post-preview-bar__inner">
+            <a class="post-preview-bar__btn post-preview-bar__btn--secondary" href="{% url 'card_restore_editor' token=card.token %}">Назад</a>
+            <form id="finalize-post-form" method="post" action="{% url 'card_finalize' token=card.token %}" class="post-preview-bar__form">
+                {% csrf_token %}
+                <input type="hidden" name="use_view_password" id="finalize-h-use" value="0">
+                <input type="hidden" name="view_password" id="finalize-h-pw1" value="">
+                <input type="hidden" name="view_password_confirm" id="finalize-h-pw2" value="">
+                <button type="submit" id="finalize-hidden-submit" hidden tabindex="-1" aria-hidden="true">Отправить</button>
+                <button type="button" id="finalize-open-confirm" class="post-preview-bar__btn post-preview-bar__btn--primary">Опубликовать</button>
+            </form>
+        </div>
+    </footer>
+
+    <div class="preview-confirm-modal" id="preview-confirm-modal" aria-hidden="true">
+        <div class="preview-confirm-modal__backdrop" tabindex="-1" data-preview-confirm-close></div>
+        <div
+            class="preview-confirm-modal__panel preview-confirm-modal__panel--wide"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="preview-confirm-title"
+        >
+            <h2 class="preview-confirm-modal__title" id="preview-confirm-title">Проверьте перед публикацией</h2>
+            <p class="preview-confirm-modal__text preview-confirm-modal__text--tight">
+                После публикации изменить открытку нельзя
+            </p>
+            <div class="hg-welcome__pw-block preview-confirm-modal__pw">
+                <div class="hg-welcome__pw-head">
+                    <label class="hg-welcome__pw-row">
+                        <span class="hg-welcome__switch">
+                            <input type="checkbox" id="pv-use-view-pw" value="1" aria-describedby="pv-pw-tooltip">
+                            <span class="hg-welcome__switch-ring" aria-hidden="true"></span>
+                        </span>
+                        <span class="hg-welcome__pw-label">Закрыть открытку паролем</span>
+                    </label>
+                    <button type="button" class="hg-welcome__help" id="pv-pw-help" aria-expanded="false" aria-controls="pv-pw-tooltip" title="Справка">?</button>
+                </div>
+                <div id="pv-pw-tooltip" class="hg-welcome__tooltip" role="tooltip" hidden>
+                    Если включить — открыть открытку можно будет только с паролем
+                </div>
+                <div id="pv-pw-fields" class="hg-welcome__pw-fields">
+                    <div>
+                        <label class="hg-welcome__field-label" for="pv-view-password">Пароль</label>
+                        <div class="hg-welcome__field-wrap">
+                            <input type="password" id="pv-view-password" autocomplete="new-password" maxlength="128">
+                            <button type="button" class="hg-welcome__eye" data-pv-eye="pv-view-password" aria-label="Показать пароль"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                        </div>
+                        <p class="hg-welcome__field-error" id="pv-err-pw1"></p>
+                    </div>
+                    <div>
+                        <label class="hg-welcome__field-label" for="pv-view-password2">Подтверждение</label>
+                        <div class="hg-welcome__field-wrap">
+                            <input type="password" id="pv-view-password2" autocomplete="new-password" maxlength="128">
+                            <button type="button" class="hg-welcome__eye" data-pv-eye="pv-view-password2" aria-label="Показать пароль"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+                        </div>
+                        <p class="hg-welcome__field-error" id="pv-err-pw2"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="preview-confirm-modal__actions">
+                <button type="button" class="preview-confirm-modal__btn preview-confirm-modal__btn--secondary" data-preview-confirm-close>
+                    Отмена
+                </button>
+                <button type="button" class="preview-confirm-modal__btn preview-confirm-modal__btn--primary" id="preview-confirm-submit">
+                    Опубликовать
+                </button>
+            </div>
+            <p class="preview-confirm-modal__fineprint">
+                Изменить после публикации нельзя. Открывается по ссылке.
+            </p>
+            <p class="preview-confirm-modal__fineprint preview-confirm-modal__fineprint--trust">&nbsp;</p>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var modal = document.getElementById('preview-confirm-modal');
+            var form = document.getElementById('finalize-post-form');
+            var openBtn = document.getElementById('finalize-open-confirm');
+            var confirmBtn = document.getElementById('preview-confirm-submit');
+            if (!modal || !form || !openBtn || !confirmBtn) return;
+
+            var cbPw = document.getElementById('pv-use-view-pw');
+            var pwFields = document.getElementById('pv-pw-fields');
+            var inp1 = document.getElementById('pv-view-password');
+            var inp2 = document.getElementById('pv-view-password2');
+            var err1 = document.getElementById('pv-err-pw1');
+            var err2 = document.getElementById('pv-err-pw2');
+            var hUse = document.getElementById('finalize-h-use');
+            var hPw1 = document.getElementById('finalize-h-pw1');
+            var hPw2 = document.getElementById('finalize-h-pw2');
+            var helpBtn = document.getElementById('pv-pw-help');
+            var tooltip = document.getElementById('pv-pw-tooltip');
+
+            var closeEls = modal.querySelectorAll('[data-preview-confirm-close]');
+            var lastFocus = null;
+
+            function clearPwErrors() {
+                if (err1) err1.textContent = '';
+                if (err2) err2.textContent = '';
+            }
+
+            function togglePwFields() {
+                if (!pwFields || !cbPw) return;
+                pwFields.classList.toggle('is-open', cbPw.checked);
+            }
+            if (cbPw) {
+                cbPw.addEventListener('change', togglePwFields);
+                togglePwFields();
+            }
+
+            if (helpBtn && tooltip) {
+                helpBtn.addEventListener('click', function () {
+                    var show = tooltip.hasAttribute('hidden');
+                    if (show) {
+                        tooltip.removeAttribute('hidden');
+                        helpBtn.setAttribute('aria-expanded', 'true');
+                    } else {
+                        tooltip.setAttribute('hidden', '');
+                        helpBtn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+
+            modal.querySelectorAll('.hg-welcome__eye[data-pv-eye]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var id = btn.getAttribute('data-pv-eye');
+                    var inp = document.getElementById(id);
+                    if (!inp) return;
+                    var show = inp.type === 'password';
+                    inp.type = show ? 'text' : 'password';
+                    btn.setAttribute('aria-label', show ? 'Скрыть пароль' : 'Показать пароль');
+                });
+            });
+
+            function openModal() {
+                lastFocus = document.activeElement;
+                clearPwErrors();
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('preview-modal-open');
+                confirmBtn.focus();
+            }
+
+            function closeModal() {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('preview-modal-open');
+                if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+            }
+
+            function syncHiddenPasswordFields() {
+                if (!hUse || !hPw1 || !hPw2) return;
+                if (cbPw && cbPw.checked) {
+                    hUse.value = '1';
+                    hPw1.value = (inp1 && inp1.value) || '';
+                    hPw2.value = (inp2 && inp2.value) || '';
+                } else {
+                    hUse.value = '0';
+                    hPw1.value = '';
+                    hPw2.value = '';
+                }
+            }
+
+            function submitForm() {
+                clearPwErrors();
+                if (cbPw && cbPw.checked) {
+                    var p1 = (inp1 && inp1.value) || '';
+                    var p2 = (inp2 && inp2.value) || '';
+                    if (p1.length < 1) {
+                        if (err1) err1.textContent = 'Введите пароль (от 1 символа).';
+                        return;
+                    }
+                    if (p1.length > 128) {
+                        if (err1) err1.textContent = 'Не длиннее 128 символов.';
+                        return;
+                    }
+                    if (p1 !== p2) {
+                        if (err2) err2.textContent = 'Пароли не совпадают.';
+                        return;
+                    }
+                }
+                syncHiddenPasswordFields();
+                confirmBtn.disabled = true;
+                var hiddenSub = document.getElementById('finalize-hidden-submit');
+                if (typeof form.requestSubmit === 'function' && hiddenSub) {
+                    form.requestSubmit(hiddenSub);
+                } else {
+                    form.submit();
+                }
+            }
+
+            openBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                openModal();
+            });
+
+            closeEls.forEach(function (el) {
+                el.addEventListener('click', function () {
+                    closeModal();
+                });
+            });
+
+            confirmBtn.addEventListener('click', function () {
+                submitForm();
+            });
+
+            modal.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeModal();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

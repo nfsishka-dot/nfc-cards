@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Введите пароль</title>
+    <link rel="stylesheet" href="{% static 'hexgraph/css/styles.css' %}?v=20260415-9">
+</head>
+<body class="post-unlock-page">
+    <main class="post-unlock-shell" role="main">
+        <div class="post-unlock-card">
+            <p class="post-unlock-eyebrow">НФСишка</p>
+            <h1 class="post-unlock-title">Введите пароль</h1>
+            <p class="post-unlock-lead">
+                Открытка защищена паролем
+            </p>
+            {% if messages %}
+            {% for message in messages %}
+            <p class="post-unlock-alert" role="alert">{{ message }}</p>
+            {% endfor %}
+            {% endif %}
+            <form class="post-unlock-form" method="post" action="{% url 'card_entry' token=card.token %}">
+                {% csrf_token %}
+                <label class="post-unlock-label" for="view_password">Пароль</label>
+                <div class="post-unlock-input-row">
+                    <input type="password" name="view_password" id="view_password" class="post-unlock-input" required autocomplete="current-password" minlength="1">
+                    <button type="button" class="post-unlock-eye" id="post-unlock-eye" aria-label="Показать пароль" aria-pressed="false">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                </div>
+                <button type="submit" class="post-unlock-submit">Открыть</button>
+            </form>
+        </div>
+    </main>
+    <script>
+        (function () {
+            var inp = document.getElementById('view_password');
+            var btn = document.getElementById('post-unlock-eye');
+            if (!inp || !btn) return;
+            btn.addEventListener('click', function () {
+                var show = inp.type === 'password';
+                inp.type = show ? 'text' : 'password';
+                btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+                btn.setAttribute('aria-label', show ? 'Скрыть пароль' : 'Показать пароль');
+            });
+        })();
+    </script>
+</body>
+</html>

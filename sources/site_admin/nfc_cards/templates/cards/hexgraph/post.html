@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="НФСишка — персональная цифровая открытка для NFC-брелка.">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="Персональная цифровая открытка от НФСишки.">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:site_name" content="НФСишка">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ title }}">
+    <meta name="twitter:description" content="Персональная цифровая открытка от НФСишки.">
+    <meta name="twitter:url" content="{{ request.url }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'hexgraph/css/styles.css' %}?v=20260415-9">
+    <link rel="stylesheet" href="{% static 'hexgraph/css/fonts.css' %}?v=20260415-1">
+
+    <title>{{ title }}</title>
+</head>
+<body class="post-view{% if background %} post-bg-active{% endif %}{% if background and background.type == 'pattern' %} post-view--pattern-bg{% endif %}"
+    {% if background and background.type == 'color' %}
+        style="background-color: {{ background.value }}; min-height: 100vh; min-height: 100dvh;"
+    {% elif background and background.type == 'image' %}
+        style="background-image: url('{{ background_url }}'); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 100vh; min-height: 100dvh;"
+    {% elif background and background.type == 'pattern' and background_url %}
+        style="background-image: url('{{ background_url }}'); background-size: 300px 300px; background-repeat: repeat; background-position: 0 0; min-height: 100vh; min-height: 100dvh;"
+    {% endif %}
+>
+    <main class="post-document{% if background %} post-bg-active{% endif %}">
+        <div class="ql-snow">
+            <div class="content ql-editor">{{ content | safe }}</div>
+        </div>
+    </main>
+</body>
+</html>

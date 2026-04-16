@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}NFC-открытки{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap">
+
+    <style>
+        body {
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #222222;
+        }
+        pre, code {
+            font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        }
+        .markdown h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        .markdown h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+        }
+        .markdown h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .markdown p, .markdown ul, .markdown ol, .markdown blockquote {
+            margin-bottom: 1.5em;
+        }
+        .markdown code {
+            background-color: #f1f5f9;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        .markdown pre {
+            background-color: #0d1117;
+            color: #ffffff;
+            padding: 1rem;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+        .markdown blockquote {
+            border-left: 4px solid #2563eb;
+            padding-left: 1rem;
+            color: #4b5563;
+        }
+        .markdown a {
+            color: #2563eb;
+        }
+        .markdown a:hover {
+            text-decoration: underline;
+        }
+        button:focus, input:focus, textarea:focus, a:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.4);
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-white">
+<div class="min-h-screen flex flex-col">
+    <main class="flex-1">
+        {% if messages %}
+            <div class="max-w-3xl mx-auto mt-4 px-4">
+                {% for message in messages %}
+                    <div class="mb-2 px-4 py-3 rounded-lg text-sm
+                        {% if message.tags == 'success' %}bg-green-100 text-green-800
+                        {% elif message.tags == 'error' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="border-t border-gray-200 mt-8 py-4">
+        <div class="max-w-5xl mx-auto px-4 flex justify-between items-center text-xs text-gray-400">
+            <div>&copy; {% now "Y" %} NFC-открытки</div>
+        </div>
+    </footer>
+</div>
+
+{% block extra_js %}{% endblock %}
+</body>
+</html>
+

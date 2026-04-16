@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load markdown_extras %}
+
+{% block title %}{{ card.title|default:"Открытка" }}{% endblock %}
+
+{% block content %}
+<div class="py-10">
+    <div class="max-w-2xl mx-auto px-4">
+        <article class="rounded-2xl border border-gray-200 px-6 py-6"
+                 style="background-color: {{ card.background_color }}; color: {{ card.text_color }}">
+
+            {% if card.title %}
+                <h1 class="text-3xl font-bold mb-2">{{ card.title }}</h1>
+            {% endif %}
+            {% if card.author_name %}
+                <div class="text-sm text-gray-500 mb-6">от {{ card.author_name }}</div>
+            {% endif %}
+
+            <div class="markdown mb-6">
+                {{ card.content|render_markdown }}
+            </div>
+
+            {% if card.photos.all %}
+                <div class="space-y-4 mb-6">
+                    {% for photo in card.photos.all %}
+                        <img src="{{ photo.file.url }}"
+                             alt=""
+                             class="w-full rounded-xl object-contain">
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if card.videos.all %}
+                <div class="space-y-4 mb-6">
+                    {% for video in card.videos.all %}
+                        <video controls class="w-full rounded-xl">
+                            <source src="{{ video.file.url }}">
+                            Ваш браузер не поддерживает видео-тег.
+                        </video>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if card.external_images %}
+                <div class="space-y-4 mb-6">
+                    {% for url in card.external_images %}
+                        <img src="{{ url }}" alt="" class="w-full rounded-xl object-contain">
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% if card.external_videos %}
+                <div class="space-y-4">
+                    {% for url in card.external_videos %}
+                        {% if "youtube.com" in url or "youtu.be" in url %}
+                            <div class="aspect-video">
+                                <iframe class="w-full h-full rounded-xl"
+                                        src="{{ url|cut:'watch?v='|add:'embed/' }}"
+                                        frameborder="0"
+                                        allowfullscreen></iframe>
+                            </div>
+                        {% elif "vimeo.com" in url %}
+                            <div class="aspect-video">
+                                <iframe class="w-full h-full rounded-xl"
+                                        src="{{ url }}"
+                                        frameborder="0"
+                                        allowfullscreen></iframe>
+                            </div>
+                        {% elif url|slice:"-4:" == ".mp4" or url|slice:"-5:" == ".webm" or url|slice:"-4:" == ".mov" %}
+                            <video controls class="w-full rounded-xl">
+                                <source src="{{ url }}">
+                                Ваш браузер не поддерживает видео-тег.
+                            </video>
+                        {% else %}
+                            <a href="{{ url }}" target="_blank"
+                               class="text-sm text-blue-600 hover:underline break-all">
+                                {{ url }}
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </article>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="Hexgraph - A platform for writing and sharing posts.">
+    
+    <meta property="og:type" content="article">
+    <meta property="og:title" content="{{ title }}">
+    <meta property="og:description" content="Read the latest post on Hexgraph.">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:site_name" content="Hexgraph">
+
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="{{ title }}">
+    <meta name="twitter:description" content="Read the latest post on Hexgraph.">
+    <meta name="twitter:site" content="@Hexgraph">
+    <meta name="twitter:url" content="{{ request.url }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+
+    <title>{{ title }}</title>
+</head>
+<body class="post-view{% if background %} post-bg-active{% endif %}"
+    {% if background and background.type == 'color' %}
+        style="background-color: {{ background.value }}; min-height: 100vh; min-height: 100dvh;"
+    {% elif background and background.type == 'image' %}
+        style="background-image: url('{{ url_for('static', filename=background.value) }}'); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 100vh; min-height: 100dvh;"
+    {% endif %}
+>
+    <main class="post-document{% if background %} post-bg-active{% endif %}">
+        <div class="ql-snow">
+            <div class="content ql-editor">{{ content | safe }}</div>
+        </div>
+    </main>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Открытка не найдена{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center py-24">
+    <div class="text-center max-w-md mx-auto px-4">
+        <h1 class="text-4xl font-bold mb-4">Открытка не найдена</h1>
+        <p class="text-gray-600 mb-6">
+            К сожалению, открытка по этой ссылке не найдена.
+        </p>
+        <a href="{% url 'home' %}"
+           class="inline-flex px-4 py-2 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700">
+            На главную
+        </a>
+    </div>
+</div>
+{% endblock %}
+

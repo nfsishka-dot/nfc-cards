@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <title>Предпросмотр</title>
+</head>
+<body class="post-view post-preview-page{% if background %} post-bg-active{% endif %}"
+    {% if background and background.type == 'color' %}
+        style="background-color: {{ background.value }}; min-height: 100vh; min-height: 100dvh;"
+    {% elif background and background.type == 'image' %}
+        style="background-image: url('{{ url_for('static', filename=background.value) }}'); background-size: cover; background-position: center; background-repeat: no-repeat; min-height: 100vh; min-height: 100dvh;"
+    {% endif %}
+>
+    <main class="post-document{% if background %} post-bg-active{% endif %}">
+        <div class="ql-snow">
+            <div class="content ql-editor">{{ content | safe }}</div>
+        </div>
+    </main>
+
+    <footer class="post-preview-bar" role="region" aria-label="Действия предпросмотра">
+        <div class="post-preview-bar__inner">
+            <a class="post-preview-bar__btn post-preview-bar__btn--secondary" href="{{ url_for('restore_editor') }}">Вернуться в редактор</a>
+            <form id="finalize-post-form" method="post" action="{{ url_for('finalize_post') }}" class="post-preview-bar__form">
+                <button type="submit" id="finalize-hidden-submit" hidden tabindex="-1" aria-hidden="true">Отправить</button>
+                <button type="button" id="finalize-open-confirm" class="post-preview-bar__btn post-preview-bar__btn--primary">Сохранить</button>
+            </form>
+        </div>
+    </footer>
+
+    <div class="preview-confirm-modal" id="preview-confirm-modal" aria-hidden="true">
+        <div class="preview-confirm-modal__backdrop" tabindex="-1" data-preview-confirm-close></div>
+        <div
+            class="preview-confirm-modal__panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="preview-confirm-title"
+        >
+            <h2 class="preview-confirm-modal__title" id="preview-confirm-title">Перед публикацией</h2>
+            <p class="preview-confirm-modal__text">
+                Пожалуйста, внимательно проверьте открытку перед сохранением. После публикации изменить её будет невозможно.
+            </p>
+            <div class="preview-confirm-modal__actions">
+                <button type="button" class="preview-confirm-modal__btn preview-confirm-modal__btn--secondary" data-preview-confirm-close>
+                    Отмена
+                </button>
+                <button type="button" class="preview-confirm-modal__btn preview-confirm-modal__btn--primary" id="preview-confirm-submit">
+                    Подтверждаю
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            var modal = document.getElementById('preview-confirm-modal');
+            var form = document.getElementById('finalize-post-form');
+            var openBtn = document.getElementById('finalize-open-confirm');
+            var confirmBtn = document.getElementById('preview-confirm-submit');
+            if (!modal || !form || !openBtn || !confirmBtn) return;
+
+            var closeEls = modal.querySelectorAll('[data-preview-confirm-close]');
+            var lastFocus = null;
+
+            function openModal() {
+                lastFocus = document.activeElement;
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('preview-modal-open');
+                confirmBtn.focus();
+            }
+
+            function closeModal() {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('preview-modal-open');
+                if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+            }
+
+            function submitForm() {
+                confirmBtn.disabled = true;
+                var hiddenSub = document.getElementById('finalize-hidden-submit');
+                if (typeof form.requestSubmit === 'function' && hiddenSub) {
+                    form.requestSubmit(hiddenSub);
+                } else {
+                    form.submit();
+                }
+            }
+
+            openBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                openModal();
+            });
+
+            closeEls.forEach(function (el) {
+                el.addEventListener('click', function () {
+                    closeModal();
+                });
+            });
+
+            confirmBtn.addEventListener('click', function () {
+                submitForm();
+            });
+
+            modal.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    closeModal();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>
