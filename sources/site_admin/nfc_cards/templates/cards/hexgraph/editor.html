@@ -285,18 +285,7 @@
 
             function compressImageOnClient(file) {
                 var mime = String(file.type || '').toLowerCase();
-                if (!/^image\//.test(mime)) {
-                    return Promise.resolve(file);
-                }
-                var isServerFriendly = /^image\/(png|jpeg|jpg|webp|gif)$/i.test(mime);
-                var mustNormalizeType = !isServerFriendly;
-                var shouldCompressBySize = file.size > CLIENT_MAX_BYTES;
-
-                // Для совместимых и небольших файлов ничего не делаем.
-                if (!mustNormalizeType && !shouldCompressBySize) return Promise.resolve(file);
-
-                // GIF оставляем как есть (анимацию через canvas сохранить нельзя).
-                if (mime === 'image/gif' && !mustNormalizeType) return Promise.resolve(file);
+                if (!/^image\//.test(mime)) return Promise.resolve(file);
 
                 return new Promise(function(resolve) {
                     var reader = new FileReader();
@@ -305,36 +294,47 @@
                         img.onload = function() {
                             var w = img.naturalWidth;
                             var h = img.naturalHeight;
-                            // Уменьшаем, если превышает max edge
+                            if (!w || !h) {
+                                resolve(file);
+                                return;
+                            }
+
+                            // Любое фото приводим к "веб-безопасному" размеру.
                             if (w > CLIENT_MAX_EDGE || h > CLIENT_MAX_EDGE) {
                                 var ratio = Math.min(CLIENT_MAX_EDGE / w, CLIENT_MAX_EDGE / h);
-                                w = Math.round(w * ratio);
-                                h = Math.round(h * ratio);
+                                w = Math.max(1, Math.round(w * ratio));
+                                h = Math.max(1, Math.round(h * ratio));
                             }
 
                             var canvas = document.createElement('canvas');
                             canvas.width = w;
                             canvas.height = h;
                             var ctx = canvas.getContext('2d');
+                            if (!ctx) {
+                                resolve(file);
+                                return;
+                            }
                             ctx.drawImage(img, 0, 0, w, h);
 
-                            // Для нестандартных форматов (heic/heif/avif и т.д.) приводим к JPEG/PNG.
-                            // PNG с прозрачностью оставляем PNG, остальное конвертируем в JPEG.
-                            var isPngWithAlpha = (mime === 'image/png') && _canvasHasAlpha(ctx, w, h);
-                            var outMime = isPngWithAlpha ? 'image/png' : 'image/jpeg';
-                            var outQ = isPngWithAlpha ? PNG_QUALITY : JPEG_QUALITY;
-                            var ext = isPngWithAlpha ? '.png' : '.jpg';
+                            // Политика:
+                            // - PNG с альфой: сохраняем PNG (прозрачность сохраняется)
+                            // - Всё остальное (включая webp/heic/heif/avif/jpeg/png без альфы): JPEG
+                            var pngWithAlpha = (mime === 'image/png') && _canvasHasAlpha(ctx, w, h);
+                            var outMime = pngWithAlpha ? 'image/png' : 'image/jpeg';
+                            var outQ = pngWithAlpha ? PNG_QUALITY : JPEG_QUALITY;
+                            var ext = pngWithAlpha ? '.png' : '.jpg';
 
                             canvas.toBlob(function(blob) {
                                 if (!blob) {
-                                    // Если canvas.toBlob не сработал — отдаём оригинал
                                     resolve(file);
                                     return;
                                 }
                                 var baseName = (file.name || 'image').replace(/\.[^.]+$/, '');
-                                var compressed = new File([blob], baseName + ext, { type: outMime, lastModified: Date.now() });
-                                // Если почему-то сжали больше — отдаём оригинал
-                                resolve(compressed.size < file.size ? compressed : file);
+                                var converted = new File([blob], baseName + ext, {
+                                    type: outMime,
+                                    lastModified: Date.now()
+                                });
+                                resolve(converted);
                             }, outMime, outQ);
                         };
                         img.onerror = function() { resolve(file); };
@@ -410,8 +410,8 @@
             function humanUploadError(err) {
                 var code = err && (err.error || err.code);
                 if (code === 'file_too_large') return 'Изображение слишком большое.';
-                if (code === 'unsupported_format') return 'Формат изображения не поддерживается. Сохраните фото как JPG/PNG и попробуйте снова.';
-                if (code === 'invalid_image') return 'Файл повреждён или не является изображением.';
+                if (code === 'unsupported_format') return 'Формат изображения не поддерживается. Попробуйте JPG/PNG/HEIC.';
+                if (code === 'invalid_image') return 'Не удалось прочитать файл. Для iPhone: откройте фото и сохраните как JPG (Most Compatible), затем повторите.';
                 if (code === 'invalid_upload') return 'Не удалось прочитать загрузку. Попробуйте ещё раз.';
                 if (code === 'processing_failed') return 'PNG не удалось обработать. Попробуйте другое изображение.';
                 if (code === 'card_too_large') return 'Превышен общий лимит 50 МБ для открытки.';

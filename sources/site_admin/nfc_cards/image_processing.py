@@ -5,6 +5,15 @@ from io import BytesIO
 
 from PIL import Image, ImageOps
 
+# Поддержка HEIC/HEIF (iPhone gallery). Без этого Pillow не читает часть фото.
+try:
+    from pillow_heif import register_heif_opener
+
+    register_heif_opener()
+except Exception:
+    # В dev/CI пакет может быть не установлен; тогда просто работаем без HEIF.
+    pass
+
 
 def optimize_editor_image(
     raw: bytes,
