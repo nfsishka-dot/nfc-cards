@@ -172,6 +172,29 @@
             }
         });
 
+        // Мгновенно убираем placeholder при любом вводе (в т.ч. мобильные IME),
+        // чтобы подсказка не наслаивалась на первый символ до пробела.
+        (function setupImmediatePlaceholderHide() {
+            var qlEditor = quill && quill.root;
+            if (!qlEditor) return;
+            function hasAnyText() {
+                return (quill.getLength() || 0) > 1;
+            }
+            function syncBlankClass() {
+                qlEditor.classList.toggle('ql-blank', !hasAnyText());
+            }
+            function hideOnAnyTyping() {
+                if (qlEditor.classList.contains('ql-blank')) {
+                    qlEditor.classList.remove('ql-blank');
+                }
+            }
+            quill.on('text-change', syncBlankClass);
+            qlEditor.addEventListener('beforeinput', hideOnAnyTyping, true);
+            qlEditor.addEventListener('keydown', hideOnAnyTyping, true);
+            qlEditor.addEventListener('compositionstart', hideOnAnyTyping, true);
+            syncBlankClass();
+        })();
+
         (function setupBackgroundHighlightPickerUi() {
             var root = document.querySelector('.ql-toolbar .ql-background');
             if (!root) return;
@@ -1576,6 +1599,9 @@
                       гарантирует, что при возврате из preview редактор откроется с актуальными данными.
                    2) Если autosave API недоступен — просто идём в preview. */
                 function doSubmit() {
+                    if (window.HexgraphEditorAutosave && typeof window.HexgraphEditorAutosave._suppressBeforeUnload === 'function') {
+                        window.HexgraphEditorAutosave._suppressBeforeUnload(7000);
+                    }
                     form.action = '{% url "card_preview" token=card.token %}';
                     form.method = 'post';
                     form.submit();

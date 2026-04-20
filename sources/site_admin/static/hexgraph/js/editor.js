@@ -109,7 +109,8 @@
     var bufferTimer = null;
     var savedTimer = null;
     var lastRetryPayload = null;
-    var autosaveActive = false;
+  var autosaveActive = false;
+  var suppressBeforeUnloadUntil = 0;
 
     function titleVal() {
       var el = document.getElementById("post-title");
@@ -636,6 +637,9 @@
       });
 
       global.addEventListener("beforeunload", function (e) {
+        if (Date.now() < suppressBeforeUnloadUntil) {
+          return;
+        }
         if (!isDirty()) {
           return;
         }
@@ -700,5 +704,9 @@
   global.HexgraphEditorAutosave = {
     init: init,
     _forceSave: forceSave,
+    _suppressBeforeUnload: function (ms) {
+      var ttl = Number(ms) || 4000;
+      suppressBeforeUnloadUntil = Date.now() + Math.max(500, ttl);
+    },
   };
 })(typeof window !== "undefined" ? window : this);

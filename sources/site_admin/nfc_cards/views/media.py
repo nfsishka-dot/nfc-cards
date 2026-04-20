@@ -41,13 +41,19 @@ def upload_editor_image(request, token):
     if not f:
         return JsonResponse({"error": "empty"}, status=400)
 
-    max_b = getattr(settings, "EDITOR_IMAGE_MAX_BYTES", 5 * 1024 * 1024)
+    upload_max_b = getattr(settings, "EDITOR_IMAGE_UPLOAD_MAX_BYTES", 30 * 1024 * 1024)
+    final_max_b = getattr(settings, "EDITOR_IMAGE_MAX_BYTES", 10 * 1024 * 1024)
     max_px = getattr(settings, "EDITOR_IMAGE_MAX_PIXELS", 24_000_000)
     hard_max_px = getattr(settings, "EDITOR_IMAGE_HARD_MAX_PIXELS", 80_000_000)
     max_edge = getattr(settings, "EDITOR_IMAGE_MAX_EDGE", 1920)
-    if f.size > max_b:
-        mb = max(1, round(max_b / (1024 * 1024)))
-        log.warning("upload rejected file_too_large token=%s size=%s limit=%s", token, f.size, max_b)
+    if f.size > upload_max_b:
+        mb = max(1, round(upload_max_b / (1024 * 1024)))
+        log.warning(
+            "upload rejected file_too_large token=%s size=%s upload_limit=%s",
+            token,
+            f.size,
+            upload_max_b,
+        )
         return JsonResponse(
             {
                 "error": "file_too_large",
@@ -63,7 +69,7 @@ def upload_editor_image(request, token):
         im = Image.open(BytesIO(raw))
         im.load()
         fmt = (im.format or "").upper()
-        if fmt not in ("JPEG", "PNG", "WEBP", "GIF"):
+        if fmt == "SVG":
             log.warning("upload rejected format token=%s fmt=%s", token, fmt)
             return JsonResponse({"error": "unsupported_format"}, status=400)
         w, h = im.size
@@ -82,6 +88,21 @@ def upload_editor_image(request, token):
     except Exception:
         log.exception("upload optimize failed token=%s", token)
         return JsonResponse({"error": "processing_failed"}, status=500)
+    if len(optimized) > final_max_b:
+        mb = max(1, round(final_max_b / (1024 * 1024)))
+        log.warning(
+            "upload rejected optimized_too_large token=%s optimized=%s final_limit=%s",
+            token,
+            len(optimized),
+            final_max_b,
+        )
+        return JsonResponse(
+            {
+                "error": "file_too_large",
+                "message": f"Не удалось ужать изображение до {mb} МБ. Выберите фото поменьше.",
+            },
+            status=400,
+        )
 
     st_err = validate_card_total_storage(card, card.content or "", len(optimized))
     if st_err:
