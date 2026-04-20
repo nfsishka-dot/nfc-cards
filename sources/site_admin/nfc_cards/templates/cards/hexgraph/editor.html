@@ -261,11 +261,19 @@
             var PNG_QUALITY = 0.85;                  // используется как max_quality hint
 
             function compressImageOnClient(file) {
-                // Не трогаем GIF и WebP (сложные форматы), и маленькие файлы
-                var isCompressible = /^image\/(png|jpeg|jpg)$/i.test(file.type);
-                if (!isCompressible || file.size <= CLIENT_MAX_BYTES) {
+                var mime = String(file.type || '').toLowerCase();
+                if (!/^image\//.test(mime)) {
                     return Promise.resolve(file);
                 }
+                var isServerFriendly = /^image\/(png|jpeg|jpg|webp|gif)$/i.test(mime);
+                var mustNormalizeType = !isServerFriendly;
+                var shouldCompressBySize = file.size > CLIENT_MAX_BYTES;
+
+                // Для совместимых и небольших файлов ничего не делаем.
+                if (!mustNormalizeType && !shouldCompressBySize) return Promise.resolve(file);
+
+                // GIF оставляем как есть (анимацию через canvas сохранить нельзя).
+                if (mime === 'image/gif' && !mustNormalizeType) return Promise.resolve(file);
 
                 return new Promise(function(resolve) {
                     var reader = new FileReader();
@@ -287,8 +295,9 @@
                             var ctx = canvas.getContext('2d');
                             ctx.drawImage(img, 0, 0, w, h);
 
-                            // PNG с прозрачностью — оставляем PNG
-                            var isPngWithAlpha = (file.type === 'image/png') && _canvasHasAlpha(ctx, w, h);
+                            // Для нестандартных форматов (heic/heif/avif и т.д.) приводим к JPEG/PNG.
+                            // PNG с прозрачностью оставляем PNG, остальное конвертируем в JPEG.
+                            var isPngWithAlpha = (mime === 'image/png') && _canvasHasAlpha(ctx, w, h);
                             var outMime = isPngWithAlpha ? 'image/png' : 'image/jpeg';
                             var outQ = isPngWithAlpha ? PNG_QUALITY : JPEG_QUALITY;
                             var ext = isPngWithAlpha ? '.png' : '.jpg';
@@ -378,7 +387,7 @@
             function humanUploadError(err) {
                 var code = err && (err.error || err.code);
                 if (code === 'file_too_large') return 'Изображение слишком большое.';
-                if (code === 'unsupported_format') return 'Формат изображения не поддерживается.';
+                if (code === 'unsupported_format') return 'Формат изображения не поддерживается. Сохраните фото как JPG/PNG и попробуйте снова.';
                 if (code === 'invalid_image') return 'Файл повреждён или не является изображением.';
                 if (code === 'invalid_upload') return 'Не удалось прочитать загрузку. Попробуйте ещё раз.';
                 if (code === 'processing_failed') return 'PNG не удалось обработать. Попробуйте другое изображение.';

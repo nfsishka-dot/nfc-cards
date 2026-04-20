@@ -207,9 +207,9 @@ else:
 SERVE_MEDIA = os.environ.get("DJANGO_SERVE_MEDIA", "").lower() in ("1", "true", "yes")
 
 # Загрузки редактора и тяжёлые POST preview (legacy base64)
-DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get("DJANGO_DATA_UPLOAD_MAX_MEMORY", str(12 * 1024 * 1024)))
-FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get("DJANGO_FILE_UPLOAD_MAX_MEMORY", str(6 * 1024 * 1024)))
-EDITOR_IMAGE_MAX_BYTES = int(os.environ.get("DJANGO_EDITOR_IMAGE_MAX_BYTES", str(5 * 1024 * 1024)))
+DATA_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get("DJANGO_DATA_UPLOAD_MAX_MEMORY", str(30 * 1024 * 1024)))
+FILE_UPLOAD_MAX_MEMORY_SIZE = int(os.environ.get("DJANGO_FILE_UPLOAD_MAX_MEMORY", str(25 * 1024 * 1024)))
+EDITOR_IMAGE_MAX_BYTES = int(os.environ.get("DJANGO_EDITOR_IMAGE_MAX_BYTES", str(10 * 1024 * 1024)))
 EDITOR_IMAGE_MAX_PIXELS = int(os.environ.get("DJANGO_EDITOR_IMAGE_MAX_PIXELS", str(24_000_000)))
 EDITOR_IMAGE_HARD_MAX_PIXELS = int(os.environ.get("DJANGO_EDITOR_IMAGE_HARD_MAX_PIXELS", str(80_000_000)))
 EDITOR_IMAGE_MAX_EDGE = int(os.environ.get("DJANGO_EDITOR_IMAGE_MAX_EDGE", "1920"))

@@ -46,8 +46,15 @@ def upload_editor_image(request, token):
     hard_max_px = getattr(settings, "EDITOR_IMAGE_HARD_MAX_PIXELS", 80_000_000)
     max_edge = getattr(settings, "EDITOR_IMAGE_MAX_EDGE", 1920)
     if f.size > max_b:
-        log.warning("upload rejected file_too_large token=%s", token)
-        return JsonResponse({"error": "file_too_large"}, status=400)
+        mb = max(1, round(max_b / (1024 * 1024)))
+        log.warning("upload rejected file_too_large token=%s size=%s limit=%s", token, f.size, max_b)
+        return JsonResponse(
+            {
+                "error": "file_too_large",
+                "message": f"Файл слишком большой. Максимум: {mb} МБ.",
+            },
+            status=400,
+        )
 
     raw = f.read()
     try:
