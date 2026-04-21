@@ -17,6 +17,9 @@ concurrency:
 jobs:
   production-deploy-v5:
     runs-on: ubuntu-latest
+    env:
+      # Снимает предупреждение про Node.js 20 на runner (см. changelog GitHub Actions)
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
       - name: Checkout

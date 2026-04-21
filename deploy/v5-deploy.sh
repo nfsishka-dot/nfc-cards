@@ -304,7 +304,8 @@ if [[ -n "$OLD_CURRENT" && -d "$OLD_CURRENT" ]]; then
     HEALTHCHECK_RESULT="OK"
     DEPLOY_STATUS="ROLLBACK"
     print_report_block
-    exit 1
+    # exit 0 — откат успешен, сайт отвечает; иначе GitHub Actions помечает job как failed без причины
+    exit 0
   fi
 fi
 
