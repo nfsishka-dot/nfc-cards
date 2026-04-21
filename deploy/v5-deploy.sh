@@ -75,14 +75,21 @@ healthcheck_all() {
   local third="${DEPLOY_HEALTHCHECK_PUBLIC_URL:-}"
   local code
 
-  for url in "${base}/" "${base}/admin/"; do
-    code="$(curl -sS -L -o /dev/null -w "%{http_code}" --connect-timeout 8 "$url" || echo "000")"
-    log "healthcheck: $url -> HTTP $code"
-    case "$code" in
-      200|301|302) ;;
-      *) return 1 ;;
-    esac
-  done
+  # Главная страница может осознанно отдавать 404 (например, нет public index view).
+  # Критичным считаем доступность /admin/.
+  code="$(curl -sS -L -o /dev/null -w "%{http_code}" --connect-timeout 8 "${base}/" || echo "000")"
+  log "healthcheck: ${base}/ -> HTTP $code"
+  case "$code" in
+    200|301|302|404) ;;
+    *) return 1 ;;
+  esac
+
+  code="$(curl -sS -L -o /dev/null -w "%{http_code}" --connect-timeout 8 "${base}/admin/" || echo "000")"
+  log "healthcheck: ${base}/admin/ -> HTTP $code"
+  case "$code" in
+    200|301|302) ;;
+    *) return 1 ;;
+  esac
 
   if [[ -n "$third" ]]; then
     code="$(curl -sS -L -o /dev/null -w "%{http_code}" --connect-timeout 8 "$third" || echo "000")"
