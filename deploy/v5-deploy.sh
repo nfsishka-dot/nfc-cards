@@ -73,6 +73,8 @@ healthcheck_all() {
   local base="${HEALTHCHECK_BASE:-http://127.0.0.1}"
   base="${base%/}"
   local third="${DEPLOY_HEALTHCHECK_PUBLIC_URL:-}"
+  local admin_path="${DEPLOY_HEALTHCHECK_ADMIN_PATH:-/dj-admin/}"
+  [[ "$admin_path" == /* ]] || admin_path="/$admin_path"
   local code
 
   # Главная страница может осознанно отдавать 404 (например, нет public index view).
@@ -84,8 +86,8 @@ healthcheck_all() {
     *) return 1 ;;
   esac
 
-  code="$(curl -sS -L -o /dev/null -w "%{http_code}" --connect-timeout 8 "${base}/admin/" || echo "000")"
-  log "healthcheck: ${base}/admin/ -> HTTP $code"
+  code="$(curl -sS -L -o /dev/null -w "%{http_code}" --connect-timeout 8 "${base}${admin_path}" || echo "000")"
+  log "healthcheck: ${base}${admin_path} -> HTTP $code"
   case "$code" in
     200|301|302) ;;
     *) return 1 ;;
