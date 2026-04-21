@@ -8,6 +8,10 @@
 
   var BUFFER_PREFIX = "hexgraph:draft-buffer:";
   var BUFFER_VERSION = 1;
+  var forceSaveImpl = function () {
+    return Promise.resolve(false);
+  };
+  var suppressBeforeUnloadImpl = function () {};
 
   function norm(s) {
     return s == null ? "" : String(s);
@@ -664,49 +668,51 @@
       wireListeners();
     }
 
-    maybeOfferRecovery(start);
-  }
-
-  /* _forceSave() — принудительное немедленное сохранение черновика.
-     Вызывается кнопкой «Дальше» перед переходом в preview. Гарантирует,
-     что при возврате назад редактор откроется с актуальными данными. */
-  function forceSave() {
-    return new Promise(function (resolve) {
-      if (!autosaveActive) {
-        resolve(false);
-        return;
-      }
-      clearDebounce();
-      var po = payloadObjectFromDom();
-      var fd = formDataFromPayload(po);
-      var headers = { "X-CSRFToken": getCsrfToken(), "X-Requested-With": "XMLHttpRequest" };
-      fetch(saveDraftUrl, {
-        method: "POST",
-        body: fd,
-        credentials: "same-origin",
-        headers: headers,
-      })
-        .then(function (res) {
-          return res.json().then(function (data) {
-            if (res.ok && data && data.ok) {
-              lastSavedSig = currentSig();
-              clearLocalBuffer();
-            }
-            resolve(res.ok && !!(data && data.ok));
-          });
-        })
-        .catch(function () {
+    forceSaveImpl = function () {
+      return new Promise(function (resolve) {
+        if (!autosaveActive) {
           resolve(false);
-        });
-    });
+          return;
+        }
+        clearDebounce();
+        var po = payloadObjectFromDom();
+        var fd = formDataFromPayload(po);
+        var headers = { "X-CSRFToken": getCsrfToken(), "X-Requested-With": "XMLHttpRequest" };
+        fetch(saveDraftUrl, {
+          method: "POST",
+          body: fd,
+          credentials: "same-origin",
+          headers: headers,
+        })
+          .then(function (res) {
+            return res.json().then(function (data) {
+              if (res.ok && data && data.ok) {
+                lastSavedSig = currentSig();
+                clearLocalBuffer();
+              }
+              resolve(res.ok && !!(data && data.ok));
+            });
+          })
+          .catch(function () {
+            resolve(false);
+          });
+      });
+    };
+    suppressBeforeUnloadImpl = function (ms) {
+      var ttl = Number(ms) || 4000;
+      suppressBeforeUnloadUntil = Date.now() + Math.max(500, ttl);
+    };
+
+    maybeOfferRecovery(start);
   }
 
   global.HexgraphEditorAutosave = {
     init: init,
-    _forceSave: forceSave,
+    _forceSave: function () {
+      return forceSaveImpl();
+    },
     _suppressBeforeUnload: function (ms) {
-      var ttl = Number(ms) || 4000;
-      suppressBeforeUnloadUntil = Date.now() + Math.max(500, ttl);
+      suppressBeforeUnloadImpl(ms);
     },
   };
 })(typeof window !== "undefined" ? window : this);
