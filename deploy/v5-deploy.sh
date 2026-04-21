@@ -15,6 +15,7 @@ SHARED_DIR="$BASE/shared"
 ENV_FILE="$SHARED_DIR/.env"
 SHARED_MEDIA="$SHARED_DIR/media"
 LOCK_FILE="/var/lock/nfc-deploy.lock"
+LOCK_FILE_FALLBACK="/tmp/nfc-deploy.lock"
 GIT_ORIGIN="${GIT_ORIGIN:-https://github.com/nfsishka-dot/nfc-cards.git}"
 DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
@@ -194,9 +195,17 @@ release_lock() {
 }
 
 acquire_lock() {
-  mkdir -p /var/lock
+  local lock_target="$LOCK_FILE"
+  mkdir -p /var/lock 2>/dev/null || true
   if command -v flock >/dev/null 2>&1; then
-    exec 200>"$LOCK_FILE"
+    # Проверяем доступ к lock-файлу безопасно: при set -e redirection у exec
+    # может оборвать скрипт до fallback.
+    if ! : > "$lock_target" 2>/dev/null; then
+      lock_target="$LOCK_FILE_FALLBACK"
+      log "lock file fallback -> $lock_target"
+    fi
+    exec 200>"$lock_target"
+    LOCK_FILE="$lock_target"
     if ! flock -n 200; then
       log "lock held: $LOCK_FILE"
       DEPLOY_STATUS="FAILED"
