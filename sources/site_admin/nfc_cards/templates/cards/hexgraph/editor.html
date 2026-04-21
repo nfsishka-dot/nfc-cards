@@ -1599,11 +1599,6 @@
                       гарантирует, что при возврате из preview редактор откроется с актуальными данными.
                    2) Если autosave API недоступен — просто идём в preview. */
                 function doSubmit() {
-                    try {
-                        if (window.HexgraphEditorAutosave && typeof window.HexgraphEditorAutosave._suppressBeforeUnload === 'function') {
-                            window.HexgraphEditorAutosave._suppressBeforeUnload(7000);
-                        }
-                    } catch (_e) {}
                     form.action = '{% url "card_preview" token=card.token %}';
                     form.method = 'post';
                     form.submit();
