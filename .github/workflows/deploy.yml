@@ -1,5 +1,6 @@
 # Production deploy V5: deploy/v5-deploy.sh на VPS (shared/.env, releases, current, healthcheck, отчёт).
 # Secrets: SSH_PRIVATE_KEY, VPS_HOST, VPS_USER
+# На VPS у VPS_USER должно быть passwordless sudo (NOPASSWD), иначе sudo -n упадёт.
 # Cursor/агент с этой машины НЕ может подтвердить успех деплоя без доступа к GitHub Actions и VPS.
 
 name: Production Deploy (V5)
@@ -56,6 +57,7 @@ jobs:
             echo "::error::Секрет VPS_USER пустой."
             exit 1
           fi
+          # v5-deploy.sh требует root (EUID 0); SSH идёт под deploy — поднимаем через sudo.
           ssh -i ~/.ssh/vps_key -o IdentitiesOnly=yes \
             "${VPS_USER}@${VPS_HOST}" \
-            bash -s < deploy/v5-deploy.sh
+            'sudo -n bash -s' < deploy/v5-deploy.sh

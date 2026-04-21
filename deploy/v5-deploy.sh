@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Production deploy V5 — проверяемый пайплайн: releases + current + shared/.env + отчёт.
-# Запуск на VPS (root): bash -s < deploy/v5-deploy.sh
+# Запуск на VPS: bash -s < deploy/v5-deploy.sh (от root), либо из CI:
+#   ssh deploy@host 'sudo -n bash -s' < deploy/v5-deploy.sh  (нужен NOPASSWD для deploy)
 #
 # Секреты не перезаписываются: source только $BASE/shared/.env
 # (если файла нет, но есть $BASE/.env — один раз копируется в shared/.env с предупреждением).
