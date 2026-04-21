@@ -19,7 +19,8 @@ error() { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
 # 0. Настраиваемые переменные — менять только здесь
 # =============================================================================
 APP_USER="deploy"
-APP_DIR="/var/www/app"
+# Единый production root (Git clone + venv + logs). См. deploy/ARCHITECTURE.md
+APP_DIR="/var/www/nfc-cards"
 
 # Путь внутри репозитория / загруженного кода где лежит manage.py
 DJANGO_SUBDIR="sources/site_admin"
@@ -99,7 +100,7 @@ info "=== 4/10  PostgreSQL ==="
 systemctl enable postgresql --now
 
 # Определяем: первый запуск или повторный (берём пароль из существующего .env)
-ENV_FILE="${APP_DIR}/current/.env"
+ENV_FILE="${APP_DIR}/.env"
 if [[ -f "${ENV_FILE}" ]] && grep -q "^DATABASE_URL=" "${ENV_FILE}"; then
     # Извлекаем пароль из существующего DATABASE_URL, не меняем его
     DB_PASS="$(grep "^DATABASE_URL=" "${ENV_FILE}" | sed 's|.*://[^:]*:\([^@]*\)@.*|\1|')"
@@ -143,13 +144,14 @@ info "Redis запущен."
 # 6. Директории проекта
 # =============================================================================
 info "=== 6/10  Директории ==="
-mkdir -p "${APP_DIR}/current"
 mkdir -p "${APP_DIR}/venv"
 mkdir -p "${APP_DIR}/logs"
-# media и staticfiles относительно DJANGO_ROOT (manage.py)
-# создаются пустыми, но правильные пути выставит deploy.sh
-mkdir -p "${APP_DIR}/current/${DJANGO_SUBDIR}/media"
-mkdir -p "${APP_DIR}/current/${DJANGO_SUBDIR}/staticfiles"
+# Совместимость со старыми инструкциями: current -> корень репозитория
+ln -sfn . "${APP_DIR}/current"
+# media и staticfiles — после git clone появится manage.py; каталоги создаём заранее
+DJANGO_ROOT="${APP_DIR}/${DJANGO_SUBDIR}"
+mkdir -p "${DJANGO_ROOT}/media"
+mkdir -p "${DJANGO_ROOT}/staticfiles"
 
 chown -R ${APP_USER}:${APP_USER} "${APP_DIR}"
 chmod 755 "${APP_DIR}"
@@ -197,7 +199,7 @@ if [[ ! -f "${ENV_FILE}" ]]; then
 
 # ───────────────────────────────────────────────────────────────────
 # ВАЖНО: после запуска скрипта отредактируй этот файл:
-#   nano /var/www/app/current/.env
+#   nano ${APP_DIR}/.env
 # Замени MY_SERVER_IP на реальный IP-адрес или домен сервера.
 # ───────────────────────────────────────────────────────────────────
 cat > "${ENV_FILE}" <<ENV
@@ -241,21 +243,21 @@ fi
 info "=== 9/10  Gunicorn systemd ==="
 
 # DJANGO_ROOT — абсолютный путь где лежит manage.py и wsgi.py
-DJANGO_ROOT="${APP_DIR}/current/${DJANGO_SUBDIR}"
+DJANGO_ROOT="${APP_DIR}/${DJANGO_SUBDIR}"
 
 cat > /usr/local/bin/app-start.sh <<STARTSCRIPT
 #!/usr/bin/env bash
 # Запускает gunicorn, загружая переменные из .env.
 # WorkingDirectory должна содержать manage.py проекта.
 set -a
-source /var/www/app/current/.env 2>/dev/null || true
+source ${ENV_FILE} 2>/dev/null || true
 set +a
-exec /var/www/app/venv/bin/gunicorn \\
+exec ${APP_DIR}/venv/bin/gunicorn \\
     nfc_site.wsgi:application \\
     --workers ${WORKERS} \\
     --bind unix:${GUNICORN_SOCK} \\
-    --access-logfile /var/www/app/logs/gunicorn-access.log \\
-    --error-logfile  /var/www/app/logs/gunicorn-error.log \\
+    --access-logfile ${APP_DIR}/logs/gunicorn-access.log \\
+    --error-logfile  ${APP_DIR}/logs/gunicorn-error.log \\
     --log-level info \\
     --timeout 60 \\
     --keep-alive 5 \\
@@ -278,7 +280,7 @@ Group=${APP_USER}
 WorkingDirectory=${DJANGO_ROOT}
 ExecStart=/usr/local/bin/app-start.sh
 ExecReload=/bin/kill -s HUP \$MAINPID
-Restart=on-failure
+Restart=always
 RestartSec=5
 # Создаёт /run/gunicorn/ с нужными правами
 RuntimeDirectory=gunicorn
@@ -325,7 +327,7 @@ server {
     add_header X-XSS-Protection        "1; mode=block"   always;
     add_header Referrer-Policy         "strict-origin-when-cross-origin" always;
 
-    # ── Статика Django (/var/www/app/current/sources/site_admin/staticfiles/) ─
+    # ── Статика Django (${DJANGO_ROOT}/staticfiles/) ─
     location /static/ {
         alias ${DJANGO_ROOT}/staticfiles/;
         expires 30d;
@@ -359,8 +361,8 @@ server {
         proxy_buffers       8 16k;
     }
 
-    access_log  /var/www/app/logs/nginx-access.log;
-    error_log   /var/www/app/logs/nginx-error.log;
+    access_log  ${APP_DIR}/logs/nginx-access.log;
+    error_log   ${APP_DIR}/logs/nginx-error.log;
 }
 NGINX
 
@@ -381,20 +383,21 @@ cat <<SUMMARY
   Сервер подготовлен. Следующие шаги:
 
   1. Отредактируй .env — замени MY_SERVER_IP:
-       nano /var/www/app/current/.env
+       nano ${ENV_FILE}
 
-  2. Загрузи код в /var/www/app/current/ (git или scp).
-     Структура должна содержать:
-       /var/www/app/current/sources/site_admin/manage.py
+  2. Клонируй репозиторий (один раз), например:
+       sudo mkdir -p ${APP_DIR} && sudo chown ${APP_USER}:${APP_USER} ${APP_DIR}
+       sudo -u ${APP_USER} git clone https://github.com/nfsishka-dot/nfc-cards.git ${APP_DIR}
+     Должно быть: ${APP_DIR}/sources/site_admin/manage.py
 
   3. Запусти деплой:
-       bash /var/www/app/deploy.sh
+       sudo bash ${APP_DIR}/deploy/deploy.sh
 
   После deploy.sh сервис стартует автоматически.
 
   БД: ${DB_NAME} / пользователь: ${DB_USER}
-  Пароль БД: ${ENV_FILE}
-  Логи: /var/www/app/logs/
+  Секреты БД: в DATABASE_URL внутри ${ENV_FILE}
+  Логи: ${APP_DIR}/logs/
   Лог этой установки: /root/setup-vps.log
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 SUMMARY

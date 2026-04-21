@@ -1,14 +1,23 @@
 #!/usr/bin/env bash
 # =============================================================================
-#  deploy.sh — деплой нового кода на уже настроенный сервер
+# deploy.sh — единый деплой: GitHub (main) → VPS → venv → migrate → static → systemd
 #
-#  Запуск: bash /var/www/app/deploy.sh
+# Запуск на сервере (после первого git clone в PROD_ROOT):
+#   sudo bash /var/www/nfc-cards/deploy/deploy.sh
+# или из корня репозитория:
+#   sudo bash deploy/deploy.sh
 #
-#  Ожидает что:
-#    - setup-vps.sh уже был выполнен
-#    - код загружен в /var/www/app/current/
-#      (структура: current/sources/site_admin/manage.py)
-#    - /var/www/app/current/.env существует и заполнен
+# Переменные окружения (опционально):
+#   PROD_ROOT=/var/www/nfc-cards
+#   GIT_ORIGIN=https://github.com/nfsishka-dot/nfc-cards.git
+#   DEPLOY_BRANCH=main
+#   DEPLOY_USER=deploy
+#
+# Ожидается:
+#   ${PROD_ROOT}/.env — секреты (не в git)
+#   ${PROD_ROOT}/.git — репозиторий
+#   ${PROD_ROOT}/sources/site_admin/manage.py
+#   ${PROD_ROOT}/venv/
 # =============================================================================
 set -euo pipefail
 
@@ -17,134 +26,150 @@ info()  { echo -e "${GREEN}[DEPLOY]${NC} $*"; }
 warn()  { echo -e "${YELLOW}[WARN]${NC}  $*"; }
 error() { echo -e "${RED}[ERROR]${NC} $*" >&2; exit 1; }
 
-# =============================================================================
-# Автоподнятие привилегий: если запущен не от root — перевызываем через sudo.
-# Это нужно для systemctl и nginx команд в конце скрипта.
-# Остальная логика (pip, manage.py) выполняется от пользователя deploy — OK,
-# потому что sudo сохраняет оригинального пользователя в SUDO_USER.
-# =============================================================================
 if [[ $EUID -ne 0 ]]; then
     warn "Запуск без root. Перевызываю через sudo..."
     exec sudo --preserve-env=HOME,PATH bash "$0" "$@"
 fi
 
-# =============================================================================
-# Переменные — должны совпадать с setup-vps.sh
-# =============================================================================
-APP_DIR="/var/www/app"
-CURRENT="${APP_DIR}/current"
-VENV="${APP_DIR}/venv"
-ENV_FILE="${CURRENT}/.env"
-DJANGO_SUBDIR="sources/site_admin"      # подпапка с manage.py внутри current/
-DJANGO_ROOT="${CURRENT}/${DJANGO_SUBDIR}"
+PROD_ROOT="${PROD_ROOT:-/var/www/nfc-cards}"
+GIT_ORIGIN="${GIT_ORIGIN:-https://github.com/nfsishka-dot/nfc-cards.git}"
+DEPLOY_BRANCH="${DEPLOY_BRANCH:-main}"
+DEPLOY_USER="${DEPLOY_USER:-deploy}"
+DJANGO_SUBDIR="${DJANGO_SUBDIR:-sources/site_admin}"
 
-# =============================================================================
-# Проверки перед запуском
-# =============================================================================
-[[ -f "${ENV_FILE}" ]] || error ".env не найден: ${ENV_FILE}
-  Создай его: nano ${ENV_FILE}
-  Образец: /var/www/app/current/.env.example (если есть)"
+VENV="${PROD_ROOT}/venv"
+ENV_FILE="${PROD_ROOT}/.env"
+DJANGO_ROOT="${PROD_ROOT}/${DJANGO_SUBDIR}"
 
-[[ -f "${DJANGO_ROOT}/manage.py" ]] || error "manage.py не найден: ${DJANGO_ROOT}/manage.py
-  Загрузи код в ${CURRENT}/
-  Структура должна быть: ${CURRENT}/sources/site_admin/manage.py"
+# Совместимость со старыми путями: current → корень репо
+ensure_current_symlink() {
+    if [[ ! -L "${PROD_ROOT}/current" ]] && [[ ! -d "${PROD_ROOT}/current" ]]; then
+        info "Создаю symlink ${PROD_ROOT}/current -> ."
+        ln -sfn . "${PROD_ROOT}/current"
+    elif [[ -d "${PROD_ROOT}/current" ]] && [[ ! -L "${PROD_ROOT}/current" ]]; then
+        warn "Существует каталог ${PROD_ROOT}/current (не symlink). Не трогаю — см. deploy/ARCHITECTURE.md"
+    fi
+}
 
-[[ -f "${VENV}/bin/python" ]] || error "venv не найден: ${VENV}
-  Сначала запусти: sudo bash /root/setup-vps.sh"
+# -----------------------------------------------------------------------------
+# Проверки
+# -----------------------------------------------------------------------------
+[[ -d "${PROD_ROOT}" ]] || error "Нет каталога PROD_ROOT: ${PROD_ROOT}"
 
-# Проверяем что .env не содержит незаполненный плейсхолдер
-if grep -q "MY_SERVER_IP" "${ENV_FILE}"; then
-    error ".env содержит незаполненный плейсхолдер MY_SERVER_IP.
-  Отредактируй: nano ${ENV_FILE}
-  Замени MY_SERVER_IP на реальный IP или домен."
+if [[ ! -d "${PROD_ROOT}/.git" ]]; then
+    error "В ${PROD_ROOT} нет git-репозитория.
+  Один раз выполни от ${DEPLOY_USER}:
+    sudo mkdir -p ${PROD_ROOT} && sudo chown ${DEPLOY_USER}:${DEPLOY_USER} ${PROD_ROOT}
+    sudo -u ${DEPLOY_USER} git clone ${GIT_ORIGIN} ${PROD_ROOT}
+  Затем создай ${ENV_FILE} (см. setup-vps или скопируй с бэкапа)."
 fi
 
-# =============================================================================
-# Загружаем переменные окружения для manage.py
-# =============================================================================
-set -a; source "${ENV_FILE}"; set +a
-info "Переменные окружения загружены."
+[[ -f "${ENV_FILE}" ]] || error ".env не найден: ${ENV_FILE}
+  Создай: nano ${ENV_FILE}"
 
-# =============================================================================
-# Зависимости
-# =============================================================================
+[[ -f "${DJANGO_ROOT}/manage.py" ]] || error "manage.py не найден: ${DJANGO_ROOT}/manage.py}"
+
+[[ -f "${VENV}/bin/python" ]] || error "venv не найден: ${VENV}
+  Создай: sudo -u ${DEPLOY_USER} python3 -m venv ${VENV}"
+
+if grep -q "MY_SERVER_IP" "${ENV_FILE}" 2>/dev/null; then
+    error ".env содержит MY_SERVER_IP — замени на реальный IP/домен: ${ENV_FILE}"
+fi
+
+# -----------------------------------------------------------------------------
+# Git = source of truth
+# -----------------------------------------------------------------------------
+info "PROD_ROOT=${PROD_ROOT}  branch=${DEPLOY_BRANCH}"
+
+REMOTE_URL="$(sudo -u "${DEPLOY_USER}" git -C "${PROD_ROOT}" remote get-url origin 2>/dev/null || true)"
+if [[ -z "${REMOTE_URL}" ]]; then
+    sudo -u "${DEPLOY_USER}" git -C "${PROD_ROOT}" remote add origin "${GIT_ORIGIN}"
+elif [[ "${REMOTE_URL}" != "${GIT_ORIGIN}" ]]; then
+    warn "origin был: ${REMOTE_URL} — выставляю ${GIT_ORIGIN}"
+    sudo -u "${DEPLOY_USER}" git -C "${PROD_ROOT}" remote set-url origin "${GIT_ORIGIN}"
+fi
+
+info "git fetch origin && reset --hard origin/${DEPLOY_BRANCH}"
+sudo -u "${DEPLOY_USER}" git -C "${PROD_ROOT}" fetch origin
+sudo -u "${DEPLOY_USER}" git -C "${PROD_ROOT}" reset --hard "origin/${DEPLOY_BRANCH}"
+
+ensure_current_symlink
+
+HEAD="$(sudo -u "${DEPLOY_USER}" git -C "${PROD_ROOT}" rev-parse --short HEAD)"
+info "Код на сервере: ${HEAD}"
+
+# -----------------------------------------------------------------------------
+# Зависимости и Django
+# -----------------------------------------------------------------------------
+set -a
+# shellcheck source=/dev/null
+source "${ENV_FILE}"
+set +a
+info "Переменные из .env загружены."
+
 info "pip install -r requirements.txt ..."
 "${VENV}/bin/pip" install --upgrade pip -q
 "${VENV}/bin/pip" install -r "${DJANGO_ROOT}/requirements.txt" -q
 info "Зависимости установлены."
 
-# =============================================================================
-# Django: проверка конфигурации
-# =============================================================================
 info "django check ..."
 cd "${DJANGO_ROOT}"
 "${VENV}/bin/python" manage.py check --deploy 2>&1 | grep -v "^System check" || true
-# Не падаем от предупреждений check --deploy (они ожидаемы без HTTPS),
-# но явные ошибки всё равно вызовут exit 1 из-за set -e.
 "${VENV}/bin/python" manage.py check --fail-level ERROR
 info "Django check пройден."
 
-# =============================================================================
-# Миграции
-# =============================================================================
 info "migrate ..."
 "${VENV}/bin/python" manage.py migrate --noinput
 info "Миграции применены."
 
-# =============================================================================
-# Статика
-# =============================================================================
 info "collectstatic ..."
 "${VENV}/bin/python" manage.py collectstatic --noinput -v 0
-info "Статика собрана в ${DJANGO_ROOT}/staticfiles/"
+info "Статика: ${DJANGO_ROOT}/staticfiles/"
 
-# =============================================================================
-# Права на media и logs (на случай первого запуска)
-# =============================================================================
-APP_USER="deploy"
+APP_USER="${DEPLOY_USER}"
 mkdir -p "${DJANGO_ROOT}/media"
-mkdir -p "${APP_DIR}/logs"
-chown -R ${APP_USER}:${APP_USER} "${DJANGO_ROOT}/media" "${APP_DIR}/logs" 2>/dev/null || true
+mkdir -p "${PROD_ROOT}/logs"
+chown -R "${APP_USER}:${APP_USER}" "${DJANGO_ROOT}/media" "${PROD_ROOT}/logs" 2>/dev/null || true
 
-# =============================================================================
-# Перезапуск gunicorn
-# =============================================================================
-info "Перезапуск gunicorn (app.service) ..."
-if systemctl is-active --quiet app; then
-    # Graceful reload — не режем активные соединения
-    systemctl reload app 2>/dev/null || systemctl restart app
-else
-    systemctl start app
+# -----------------------------------------------------------------------------
+# Один gunicorn под systemd: остановить «ручные» процессы этого приложения
+# -----------------------------------------------------------------------------
+if pgrep -f 'gunicorn.*nfc_site\.wsgi' >/dev/null 2>&1; then
+    warn "Останавливаю процессы gunicorn nfc_site.wsgi (перед systemd)"
+    pkill -f 'gunicorn.*nfc_site\.wsgi' || true
+    sleep 2
+    pkill -9 -f 'gunicorn.*nfc_site\.wsgi' 2>/dev/null || true
 fi
 
-# Даём пару секунд подняться
-sleep 3
-
-if systemctl is-active --quiet app; then
-    info "app.service запущен."
+# -----------------------------------------------------------------------------
+# Перезапуск приложения и nginx
+# -----------------------------------------------------------------------------
+info "Перезапуск app.service ..."
+if [[ -f /etc/systemd/system/app.service ]]; then
+    systemctl restart app
 else
-    error "app.service не запустился.
-  Диагностика:
-    journalctl -u app -n 50 --no-pager
-    cat /var/www/app/logs/gunicorn-error.log"
+    warn "Нет /etc/systemd/system/app.service — выполни deploy/setup-vps.sh или deploy/fix-systemd-unify-path.sh"
 fi
 
-# =============================================================================
-# Перезагрузка nginx (на случай изменения конфига)
-# =============================================================================
-nginx -t && systemctl reload nginx && info "nginx перезагружен."
+sleep 2
+if systemctl is-active --quiet app 2>/dev/null; then
+    info "app.service активен."
+else
+    warn "app.service не active. Смотри: journalctl -u app -n 50 --no-pager"
+fi
 
-# =============================================================================
-# Итог
-# =============================================================================
-SERVER_IP="${DJANGO_ALLOWED_HOSTS:-???}"
+if nginx -t 2>/dev/null; then
+    systemctl reload nginx && info "nginx перезагружен."
+else
+    warn "nginx -t не прошёл — проверь конфиг вручную."
+fi
+
 cat <<DONE
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Деплой завершён.
-  Открой в браузере: http://${SERVER_IP}/
-  Логи gunicorn:  tail -f /var/www/app/logs/gunicorn-error.log
-  Логи nginx:     tail -f /var/www/app/logs/nginx-error.log
+  Деплой завершён. commit: ${HEAD}
+  Логи gunicorn:  tail -f ${PROD_ROOT}/logs/gunicorn-error.log
+  Логи nginx:     tail -f ${PROD_ROOT}/logs/nginx-error.log
   Статус:         systemctl status app
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 DONE
