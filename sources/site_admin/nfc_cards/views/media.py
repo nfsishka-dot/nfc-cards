@@ -118,9 +118,6 @@ def upload_editor_image(request, token):
         return JsonResponse({"error": "save_failed"}, status=500)
 
     rel = photo.file.url
-    if rel.startswith(("http://", "https://")):
-        abs_url = rel
-    else:
-        abs_url = request.build_absolute_uri(rel)
-
-    return JsonResponse({"url": abs_url})
+    # В редактор всегда отдаём относительный URL (/media/...), чтобы исключить
+    # проблемы со схемой/хостом за прокси (http vs https, mixed content).
+    return JsonResponse({"url": rel})
