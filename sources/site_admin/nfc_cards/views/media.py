@@ -1,5 +1,6 @@
 import logging
 from io import BytesIO
+import time
 
 from django.conf import settings
 from django.core.files.base import ContentFile
@@ -120,4 +121,4 @@ def upload_editor_image(request, token):
     rel = photo.file.url
     # В редактор всегда отдаём относительный URL (/media/...), чтобы исключить
     # проблемы со схемой/хостом за прокси (http vs https, mixed content).
-    return JsonResponse({"url": rel})
+    return JsonResponse({"url": f"{rel}?v={int(time.time())}"})

@@ -177,7 +177,16 @@ if not DEBUG:
     STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+_default_media_root = BASE_DIR / "media"
+_shared_media_root = Path("/var/www/nfc-cards/shared/media")
+_media_root_env = os.environ.get("DJANGO_MEDIA_ROOT", "").strip()
+if _media_root_env:
+    MEDIA_ROOT = Path(_media_root_env)
+elif _shared_media_root.exists():
+    # В production используем единый shared media-каталог, независимо от release-пути.
+    MEDIA_ROOT = _shared_media_root
+else:
+    MEDIA_ROOT = _default_media_root
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
