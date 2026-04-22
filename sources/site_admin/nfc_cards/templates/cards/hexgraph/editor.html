@@ -523,12 +523,17 @@
                     var restore = setTransientStatus('Загрузка изображения…');
                     uploadImageFile(file).then(function(data) {
                         restore();
-                        if (!data || !data.url) return;
+                        if (!data || data.success !== true || !data.url) {
+                            console.error('Image upload failed (invalid success payload)', data);
+                            alert('Ошибка загрузки изображения');
+                            return;
+                        }
                         // Если URL указывает на .png или оригинал был PNG с альфой — метим класс
                         var finalIsPng = origIsPng || /\.png(\?|$)/i.test(data.url);
                         insertPersistedImage(data.url, finalIsPng);
                     }).catch(function(err) {
                         restore();
+                        console.error('Image upload failed', err);
                         alert(humanUploadError(err));
                     });
                 };
@@ -548,13 +553,17 @@
                     var restore = setTransientStatus('Загрузка изображения…');
                     uploadImageFile(file).then(function(data) {
                         restore();
-                        if (data && data.url) {
+                        if (data && data.success === true && data.url) {
                             var finalIsPng = origIsPng || /\.png(\?|$)/i.test(data.url);
                             insertPersistedImage(data.url, finalIsPng);
+                        } else {
+                            console.error('Image upload failed (invalid success payload)', data);
+                            alert('Ошибка загрузки изображения');
                         }
                         run(i + 1);
                     }).catch(function(err) {
                         restore();
+                        console.error('Image upload failed', err);
                         alert(humanUploadError(err));
                     });
                 })(0);
