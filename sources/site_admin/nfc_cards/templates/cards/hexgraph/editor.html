@@ -529,6 +529,14 @@
             }
             var toolbar = getToolbar();
             if (!toolbar || !quill) return;
+            var coarsePointer = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window);
+
+            function closeMobileKeyboardIfNeeded() {
+                if (!coarsePointer) return;
+                var ae = document.activeElement;
+                if (ae && typeof ae.blur === 'function') ae.blur();
+                if (quill.root && typeof quill.root.blur === 'function') quill.root.blur();
+            }
 
             function shouldSaveSelectionTarget(t) {
                 if (!t || !toolbar.contains(t)) return false;
@@ -564,13 +572,20 @@
                 var L = r.length > 0 ? r.length : 0;
                 try {
                     quill.setSelection(idx, L, 'user');
-                    quill.focus();
+                    if (!toolbar._hgSkipFocusRestore) {
+                        quill.focus();
+                    }
                 } catch (_e) {}
+                toolbar._hgSkipFocusRestore = false;
             }
 
             toolbar.addEventListener('mousedown', function(e) {
                 if (e.button !== 0) return;
                 if (!shouldSaveSelectionTarget(e.target)) return;
+                if (coarsePointer) {
+                    toolbar._hgSkipFocusRestore = true;
+                    closeMobileKeyboardIfNeeded();
+                }
                 saveRange();
                 if (shouldPreventDefaultOnMousedown(e.target)) {
                     e.preventDefault();
@@ -587,6 +602,8 @@
 
             toolbar.addEventListener('touchstart', function(e) {
                 if (!shouldSaveSelectionTarget(e.target)) return;
+                toolbar._hgSkipFocusRestore = true;
+                closeMobileKeyboardIfNeeded();
                 saveRange();
             }, { capture: true, passive: true });
 
@@ -1599,6 +1616,9 @@
                       гарантирует, что при возврате из preview редактор откроется с актуальными данными.
                    2) Если autosave API недоступен — просто идём в preview. */
                 function doSubmit() {
+                    if (window.HexgraphEditorAutosave && typeof window.HexgraphEditorAutosave._suppressBeforeUnload === 'function') {
+                        window.HexgraphEditorAutosave._suppressBeforeUnload(10000);
+                    }
                     form.action = '{% url "card_preview" token=card.token %}';
                     form.method = 'post';
                     form.submit();

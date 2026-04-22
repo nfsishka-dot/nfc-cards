@@ -12,6 +12,7 @@
     return Promise.resolve(false);
   };
   var suppressBeforeUnloadImpl = function () {};
+  var navigationByEditorSubmit = false;
 
   function norm(s) {
     return s == null ? "" : String(s);
@@ -641,6 +642,9 @@
       });
 
       global.addEventListener("beforeunload", function (e) {
+        if (navigationByEditorSubmit) {
+          return;
+        }
         if (Date.now() < suppressBeforeUnloadUntil) {
           return;
         }
@@ -700,7 +704,11 @@
     };
     suppressBeforeUnloadImpl = function (ms) {
       var ttl = Number(ms) || 4000;
+      navigationByEditorSubmit = true;
       suppressBeforeUnloadUntil = Date.now() + Math.max(500, ttl);
+      setTimeout(function () {
+        navigationByEditorSubmit = false;
+      }, Math.max(500, ttl));
     };
 
     maybeOfferRecovery(start);

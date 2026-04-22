@@ -2749,12 +2749,28 @@ body.preview-modal-open {
     }
 
     body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools {
-        flex-wrap: wrap;
-        justify-content: center;
-        align-content: center;
+        display: grid;
+        grid-auto-flow: column;
+        grid-template-rows: repeat(2, minmax(34px, auto));
+        grid-auto-columns: max-content;
+        justify-content: start;
+        align-content: start;
         overflow: visible;
         padding: 2px 4px;
-        row-gap: var(--toolbar-gap);
+        row-gap: 5px;
+        column-gap: 5px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools::-webkit-scrollbar {
+        display: none;
+    }
+
+    body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-formats {
+        display: contents;
     }
 
     /* Никаких snap/scroll — чтобы dropdown не "уезжал" и не становился невидимым */
@@ -2789,9 +2805,9 @@ body.preview-modal-open {
 
     .ql-toolbar .ql-picker.ql-font {
         flex-shrink: 0;
-        width: var(--font-picker-width) !important;
-        min-width: var(--font-picker-width) !important;
-        max-width: var(--font-picker-width) !important;
+        width: 96px !important;
+        min-width: 96px !important;
+        max-width: 96px !important;
     }
 
     #editor-container .ql-editor {
