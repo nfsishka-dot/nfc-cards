@@ -172,6 +172,57 @@
             }
         });
 
+        (function setupMobileToolbarKeyboardGuard() {
+            var coarsePointer = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window);
+            if (!coarsePointer) return;
+            var toolbar = document.querySelector('.ql-toolbar');
+            if (!toolbar) return;
+
+            var suppressFocusUntil = 0;
+            var originalFocus = typeof quill.focus === 'function' ? quill.focus.bind(quill) : null;
+
+            function blurActiveElement() {
+                var ae = document.activeElement;
+                if (ae && typeof ae.blur === 'function') ae.blur();
+                if (quill.root && typeof quill.root.blur === 'function') quill.root.blur();
+            }
+
+            function isToolbarTarget(target) {
+                if (!target || !target.closest) return false;
+                return !!(target.closest('.ql-toolbar') || target.closest('.ql-post-bg-popover'));
+            }
+
+            function armKeyboardSuppression() {
+                suppressFocusUntil = Date.now() + 1200;
+                blurActiveElement();
+            }
+
+            if (originalFocus) {
+                quill.focus = function() {
+                    if (Date.now() < suppressFocusUntil) {
+                        blurActiveElement();
+                        return;
+                    }
+                    return originalFocus.apply(quill, arguments);
+                };
+            }
+
+            document.addEventListener('pointerdown', function(e) {
+                if (!isToolbarTarget(e.target)) return;
+                armKeyboardSuppression();
+            }, true);
+
+            document.addEventListener('touchstart', function(e) {
+                if (!isToolbarTarget(e.target)) return;
+                armKeyboardSuppression();
+            }, { capture: true, passive: true });
+
+            document.addEventListener('click', function(e) {
+                if (!isToolbarTarget(e.target)) return;
+                armKeyboardSuppression();
+            }, true);
+        })();
+
         // Мгновенно убираем placeholder при любом вводе (в т.ч. мобильные IME),
         // чтобы подсказка не наслаивалась на первый символ до пробела.
         (function setupImmediatePlaceholderHide() {
