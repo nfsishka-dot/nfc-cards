@@ -176,9 +176,10 @@
             var coarsePointer = (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) || ('ontouchstart' in window);
             if (!coarsePointer) return;
             var toolbar = document.querySelector('.ql-toolbar');
-            if (!toolbar) return;
+            if (!toolbar || !quill || !quill.root) return;
 
-            var suppressFocusUntil = 0;
+            var allowKeyboardFocus = false;
+            var lockFocusUntil = 0;
             var originalFocus = typeof quill.focus === 'function' ? quill.focus.bind(quill) : null;
 
             function blurActiveElement() {
@@ -187,19 +188,30 @@
                 if (quill.root && typeof quill.root.blur === 'function') quill.root.blur();
             }
 
+            function isEditorTextTarget(target) {
+                if (!target || !target.closest) return false;
+                return !!target.closest('#editor-container .ql-editor');
+            }
+
             function isToolbarTarget(target) {
                 if (!target || !target.closest) return false;
                 return !!(target.closest('.ql-toolbar') || target.closest('.ql-post-bg-popover'));
             }
 
-            function armKeyboardSuppression() {
-                suppressFocusUntil = Date.now() + 1200;
+            function hardCloseKeyboardFromToolbar() {
+                allowKeyboardFocus = false;
+                lockFocusUntil = Date.now() + 2000;
                 blurActiveElement();
+            }
+
+            function allowKeyboardFromEditor() {
+                allowKeyboardFocus = true;
+                lockFocusUntil = 0;
             }
 
             if (originalFocus) {
                 quill.focus = function() {
-                    if (Date.now() < suppressFocusUntil) {
+                    if (!allowKeyboardFocus || Date.now() < lockFocusUntil) {
                         blurActiveElement();
                         return;
                     }
@@ -208,18 +220,45 @@
             }
 
             document.addEventListener('pointerdown', function(e) {
-                if (!isToolbarTarget(e.target)) return;
-                armKeyboardSuppression();
+                if (isToolbarTarget(e.target)) {
+                    hardCloseKeyboardFromToolbar();
+                    return;
+                }
+                if (isEditorTextTarget(e.target)) {
+                    allowKeyboardFromEditor();
+                    return;
+                }
+                allowKeyboardFocus = false;
             }, true);
 
             document.addEventListener('touchstart', function(e) {
-                if (!isToolbarTarget(e.target)) return;
-                armKeyboardSuppression();
+                if (isToolbarTarget(e.target)) {
+                    hardCloseKeyboardFromToolbar();
+                    return;
+                }
+                if (isEditorTextTarget(e.target)) {
+                    allowKeyboardFromEditor();
+                    return;
+                }
+                allowKeyboardFocus = false;
             }, { capture: true, passive: true });
 
             document.addEventListener('click', function(e) {
-                if (!isToolbarTarget(e.target)) return;
-                armKeyboardSuppression();
+                if (isToolbarTarget(e.target)) {
+                    hardCloseKeyboardFromToolbar();
+                    return;
+                }
+                if (isEditorTextTarget(e.target)) {
+                    allowKeyboardFromEditor();
+                    return;
+                }
+                allowKeyboardFocus = false;
+            }, true);
+
+            quill.root.addEventListener('focus', function() {
+                if (!allowKeyboardFocus || Date.now() < lockFocusUntil) {
+                    blurActiveElement();
+                }
             }, true);
         })();
 
