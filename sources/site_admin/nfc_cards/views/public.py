@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
 from django.core.mail import send_mail
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
 from ..card_view_lock import set_unlock_cookie, verify_unlock_cookie
@@ -12,6 +13,10 @@ from ..models import Card
 from ..services import card_post_cache
 
 log = logging.getLogger("nfc_cards")
+
+
+def healthz(request):
+    return JsonResponse({"status": "ok"})
 
 
 def home(request):

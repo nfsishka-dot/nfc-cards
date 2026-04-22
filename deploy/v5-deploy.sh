@@ -73,12 +73,21 @@ healthcheck_all() {
   local base="${HEALTHCHECK_BASE:-http://127.0.0.1}"
   base="${base%/}"
   local third="${DEPLOY_HEALTHCHECK_PUBLIC_URL:-}"
+  local health_path="${DEPLOY_HEALTHCHECK_PATH:-/healthz/}"
   local admin_path="${DEPLOY_HEALTHCHECK_ADMIN_PATH:-/dj-admin/}"
+  [[ "$health_path" == /* ]] || health_path="/$health_path"
   [[ "$admin_path" == /* ]] || admin_path="/$admin_path"
   local code
 
+  # Основной liveness/readiness-check: выделенный endpoint /healthz.
+  code="$(curl -sS -L -o /dev/null -w "%{http_code}" --connect-timeout 8 "${base}${health_path}" || echo "000")"
+  log "healthcheck: ${base}${health_path} -> HTTP $code"
+  case "$code" in
+    200|301|302) ;;
+    *) return 1 ;;
+  esac
+
   # Главная страница может осознанно отдавать 404 (например, нет public index view).
-  # Критичным считаем доступность /admin/.
   code="$(curl -sS -L -o /dev/null -w "%{http_code}" --connect-timeout 8 "${base}/" || echo "000")"
   log "healthcheck: ${base}/ -> HTTP $code"
   case "$code" in

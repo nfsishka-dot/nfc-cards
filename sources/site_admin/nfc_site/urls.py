@@ -10,6 +10,7 @@ from nfc_cards.views import (
     card_preview,
     card_restore_editor,
     card_save_draft,
+    healthz,
     home,
     upload_editor_image,
 )
@@ -17,6 +18,7 @@ from nfc_cards.views import (
 handler404 = "tapnote.views.custom_404"
 
 urlpatterns = [
+    path("healthz/", healthz, name="healthz"),
     path("dj-admin/", admin.site.urls),
     path("", home, name="home"),
     path("adminpanel/", include("nfc_cards.urls")),

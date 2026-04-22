@@ -26,7 +26,7 @@ from .editor import (
     card_save_draft,
 )
 from .media import upload_editor_image
-from .public import card_entry, custom_404, home
+from .public import card_entry, custom_404, healthz, home
 
 __all__ = [
     "CREATE_LINKS_MAX_PER_REQUEST",
@@ -55,5 +55,6 @@ __all__ = [
     "upload_editor_image",
     "card_entry",
     "custom_404",
+    "healthz",
     "home",
 ]
