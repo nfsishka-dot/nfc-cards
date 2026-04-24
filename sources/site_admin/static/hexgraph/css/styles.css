@@ -3622,3 +3622,121 @@ body.preview-modal-open {
     outline: none;
     box-shadow: 0 0 0 4px rgba(17, 24, 39, 0.12), 0 16px 40px rgba(17, 24, 39, 0.26);
 }
+
+/* =========================================================
+   CANONICAL EDITOR TOOLBAR UI (V10)
+   Premium, mobile-first, single-source override layer.
+   ========================================================= */
+body.page-editor .editor-shell .ql-toolbar {
+    --toolbar-bg: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 245, 242, 0.94) 100%);
+    --control-bg: linear-gradient(180deg, #ffffff 0%, #f3f2ef 100%);
+    --control-border: rgba(17, 24, 39, 0.12);
+    --control-shadow: 0 1px 0 rgba(255, 255, 255, 0.96) inset, 0 6px 16px rgba(17, 24, 39, 0.08);
+    --control-shadow-hover: 0 1px 0 rgba(255, 255, 255, 1) inset, 0 10px 24px rgba(17, 24, 39, 0.12);
+    --control-shadow-active: inset 0 2px 8px rgba(17, 24, 39, 0.14), 0 1px 2px rgba(17, 24, 39, 0.08);
+    --control-active-bg: linear-gradient(180deg, #ece9e4 0%, #dfdbd3 100%);
+    --control-active-border: rgba(17, 24, 39, 0.24);
+    background: var(--toolbar-bg) !important;
+    border: 0 !important;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.08) !important;
+    box-shadow: 0 18px 40px rgba(17, 24, 39, 0.07);
+    backdrop-filter: blur(14px) saturate(1.06);
+    -webkit-backdrop-filter: blur(14px) saturate(1.06);
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools {
+    display: grid !important;
+    grid-auto-flow: row !important;
+    grid-template-columns: repeat(7, var(--tap)) !important;
+    grid-template-rows: repeat(2, var(--tap)) !important;
+    column-gap: var(--toolbar-gap) !important;
+    row-gap: var(--toolbar-gap) !important;
+    justify-content: center !important;
+    align-content: center !important;
+    width: calc(7 * var(--tap) + 6 * var(--toolbar-gap));
+    min-width: calc(7 * var(--tap) + 6 * var(--toolbar-gap));
+    margin: 0 auto !important;
+    padding: 2px 4px !important;
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-formats {
+    display: contents !important;
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn),
+body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn),
+body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font) .ql-picker-label,
+body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker,
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label {
+    border-radius: 14px !important;
+    border: 1px solid var(--control-border) !important;
+    background: var(--control-bg) !important;
+    box-shadow: var(--control-shadow) !important;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease, background 0.16s ease !important;
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font {
+    width: var(--font-picker-width) !important;
+    min-width: var(--font-picker-width) !important;
+    max-width: var(--font-picker-width) !important;
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label {
+    padding: 0 22px 0 10px !important;
+    justify-content: flex-start !important;
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn):hover,
+body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn):hover,
+body.page-editor .editor-shell .ql-toolbar .ql-picker .ql-picker-label:hover,
+body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker:hover {
+    border-color: rgba(17, 24, 39, 0.2) !important;
+    background: linear-gradient(180deg, #ffffff 0%, #eceae5 100%) !important;
+    box-shadow: var(--control-shadow-hover) !important;
+    transform: translateY(-1px);
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn):active,
+body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn):active,
+body.page-editor .editor-shell .ql-toolbar .ql-picker .ql-picker-label:active,
+body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker:active {
+    transform: translateY(0);
+    box-shadow: var(--control-shadow-active) !important;
+}
+
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn).ql-active,
+body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn).ql-active,
+body.page-editor .editor-shell .ql-toolbar .ql-picker .ql-picker-label.ql-active,
+body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-expanded .ql-picker-label {
+    background: var(--control-active-bg) !important;
+    border-color: var(--control-active-border) !important;
+}
+
+body.page-editor .editor-shell .ql-toolbar button:focus-visible,
+body.page-editor .editor-shell .ql-toolbar .ql-picker-label:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.28), var(--control-shadow) !important;
+}
+
+/* Canonical order: row1 = 6 controls, row2 = 7 controls. */
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-picker.ql-font { order: 1 !important; grid-column: 1 / span 2 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-picker.ql-align { order: 2 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-bold { order: 3 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-underline { order: 4 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-link { order: 5 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-clean { order: 6 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-picker.ql-header { order: 7 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-list { order: 8 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-italic { order: 9 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-image { order: 10 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-picker.ql-color { order: 11 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-picker.ql-background { order: 12 !important; }
+body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-post-bg-picker { order: 13 !important; }
+
+@media (min-width: 769px) and (hover: hover) and (pointer: fine) {
+    body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools {
+        width: auto;
+        min-width: 0;
+        grid-template-columns: repeat(7, var(--tap));
+    }
+}
