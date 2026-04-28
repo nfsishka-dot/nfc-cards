@@ -657,17 +657,9 @@
                 return false;
             }
 
-            function shouldPreventDefaultOnMousedown(t) {
-                if (!shouldSaveSelectionTarget(t)) return false;
-                if (t.closest('.ql-post-bg-popover') && !t.closest('.ql-post-bg-picker')) return false;
-                return true;
-            }
-
-            function shouldPreventDefaultOnTouchStart(t) {
-                if (!shouldSaveSelectionTarget(t)) return false;
-                if (t.closest('.ql-post-bg-popover') && !t.closest('.ql-post-bg-picker')) return false;
-                return true;
-            }
+            // Важно: на mobile нельзя без нужды глушить события тулбара
+            // (iOS часто отменяет последующий click и Quill не выполняет command).
+            // Мы сохраняем/восстанавливаем selection без preventDefault.
 
             function saveRange() {
                 var sel = quill.getSelection();
@@ -708,9 +700,6 @@
                 if (coarsePointer && shouldDismissKeyboardForTarget(e.target)) {
                     closeMobileKeyboardIfNeeded();
                 }
-                if (shouldPreventDefaultOnMousedown(e.target)) {
-                    e.preventDefault();
-                }
             }, true);
 
             toolbar.addEventListener('click', function(e) {
@@ -728,10 +717,7 @@
                 if (shouldDismissKeyboardForTarget(e.target)) {
                     closeMobileKeyboardIfNeeded();
                 }
-                if (shouldPreventDefaultOnTouchStart(e.target) && e.cancelable) {
-                    e.preventDefault();
-                }
-            }, { capture: true, passive: false });
+            }, { capture: true, passive: true });
 
             toolbar.addEventListener('touchend', function(e) {
                 if (!shouldSaveSelectionTarget(e.target)) return;
@@ -739,8 +725,7 @@
                 requestAnimationFrame(function() {
                     requestAnimationFrame(restoreRange);
                 });
-                if (e.cancelable) e.preventDefault();
-            }, { capture: true, passive: false });
+            }, { capture: true, passive: true });
         })(quill);
 
         (function setupMobileCaretFromPoint(quill) {
