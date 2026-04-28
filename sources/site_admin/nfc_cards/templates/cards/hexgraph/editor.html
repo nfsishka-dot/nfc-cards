@@ -180,7 +180,6 @@
 
             var allowKeyboardFocus = false;
             var lockFocusUntil = 0;
-            var originalFocus = typeof quill.focus === 'function' ? quill.focus.bind(quill) : null;
 
             function blurActiveElement() {
                 var ae = document.activeElement;
@@ -193,15 +192,17 @@
                 return !!target.closest('#editor-container .ql-editor');
             }
 
-            function isToolbarTarget(target) {
+            /* Сворачивание клавиатуры / блок фокуса только для UI фона (палитра занимает экран). */
+            function isBackgroundKeyboardTarget(target) {
                 if (!target || !target.closest) return false;
-                return !!(target.closest('.ql-toolbar') || target.closest('.ql-post-bg-popover'));
+                return !!(target.closest('.ql-post-bg-picker') || target.closest('.ql-post-bg-popover'));
             }
 
             function hardCloseKeyboardFromToolbar() {
                 allowKeyboardFocus = false;
                 lockFocusUntil = Date.now() + 2000;
-                blurActiveElement();
+                /* Не blur здесь: capture на document срабатывает раньше тулбара и на iOS
+                   обнуляет выделение до saveRange() → кнопки «мёртвые». Размытие — в closeMobileKeyboardIfNeeded. */
             }
 
             function allowKeyboardFromEditor() {
@@ -209,18 +210,8 @@
                 lockFocusUntil = 0;
             }
 
-            if (originalFocus) {
-                quill.focus = function() {
-                    if (!allowKeyboardFocus || Date.now() < lockFocusUntil) {
-                        blurActiveElement();
-                        return;
-                    }
-                    return originalFocus.apply(quill, arguments);
-                };
-            }
-
             document.addEventListener('pointerdown', function(e) {
-                if (isToolbarTarget(e.target)) {
+                if (isBackgroundKeyboardTarget(e.target)) {
                     hardCloseKeyboardFromToolbar();
                     return;
                 }
@@ -232,7 +223,7 @@
             }, true);
 
             document.addEventListener('touchstart', function(e) {
-                if (isToolbarTarget(e.target)) {
+                if (isBackgroundKeyboardTarget(e.target)) {
                     hardCloseKeyboardFromToolbar();
                     return;
                 }
@@ -244,7 +235,7 @@
             }, { capture: true, passive: true });
 
             document.addEventListener('click', function(e) {
-                if (isToolbarTarget(e.target)) {
+                if (isBackgroundKeyboardTarget(e.target)) {
                     hardCloseKeyboardFromToolbar();
                     return;
                 }
@@ -255,11 +246,23 @@
                 allowKeyboardFocus = false;
             }, true);
 
-            quill.root.addEventListener('focus', function() {
-                if (!allowKeyboardFocus || Date.now() < lockFocusUntil) {
-                    blurActiveElement();
-                }
-            }, true);
+            quill._hgMobileFocus = {
+                canFocus: function() {
+                    return allowKeyboardFocus && Date.now() >= lockFocusUntil;
+                },
+                blurNow: blurActiveElement,
+                allowFromEditor: allowKeyboardFromEditor,
+                suppressForBackground: hardCloseKeyboardFromToolbar,
+                unlockAfterToolbarAction: function() {
+                    allowKeyboardFocus = true;
+                    lockFocusUntil = 0;
+                },
+            };
+
+            quill._hgUnlockMobileKbFocus = function() {
+                allowKeyboardFocus = true;
+                lockFocusUntil = 0;
+            };
         })();
 
         // Мгновенно убираем placeholder при любом вводе (в т.ч. мобильные IME),
@@ -637,6 +640,11 @@
                 if (quill.root && typeof quill.root.blur === 'function') quill.root.blur();
             }
 
+            function shouldDismissKeyboardForTarget(t) {
+                if (!t || !t.closest) return false;
+                return !!(t.closest('.ql-post-bg-picker') || t.closest('.ql-post-bg-popover'));
+            }
+
             function shouldSaveSelectionTarget(t) {
                 if (!t || !toolbar.contains(t)) return false;
                 if (t.closest && t.closest('.ql-post-help')) return false;
@@ -655,6 +663,12 @@
                 return true;
             }
 
+            function shouldPreventDefaultOnTouchStart(t) {
+                if (!shouldSaveSelectionTarget(t)) return false;
+                if (t.closest('.ql-post-bg-popover') && !t.closest('.ql-post-bg-picker')) return false;
+                return true;
+            }
+
             function saveRange() {
                 var sel = quill.getSelection();
                 if (sel && typeof sel.index === 'number') {
@@ -666,12 +680,18 @@
                 var r = toolbar._hgToolbarSel;
                 if (!r) return;
                 toolbar._hgToolbarSel = null;
+                if (typeof quill._hgUnlockMobileKbFocus === 'function') {
+                    quill._hgUnlockMobileKbFocus();
+                }
                 var len = quill.getLength();
                 var idx = Math.max(0, Math.min(r.index, Math.max(0, len - 1)));
                 var L = r.length > 0 ? r.length : 0;
                 try {
                     quill.setSelection(idx, L, 'user');
                     if (!toolbar._hgSkipFocusRestore) {
+                        if (quill._hgMobileFocus && typeof quill._hgMobileFocus.canFocus === 'function' && !quill._hgMobileFocus.canFocus()) {
+                            if (typeof quill._hgUnlockMobileKbFocus === 'function') quill._hgUnlockMobileKbFocus();
+                        }
                         quill.focus();
                     }
                 } catch (_e) {}
@@ -683,9 +703,11 @@
                 if (!shouldSaveSelectionTarget(e.target)) return;
                 if (coarsePointer) {
                     toolbar._hgSkipFocusRestore = true;
-                    closeMobileKeyboardIfNeeded();
                 }
                 saveRange();
+                if (coarsePointer && shouldDismissKeyboardForTarget(e.target)) {
+                    closeMobileKeyboardIfNeeded();
+                }
                 if (shouldPreventDefaultOnMousedown(e.target)) {
                     e.preventDefault();
                 }
@@ -702,9 +724,14 @@
             toolbar.addEventListener('touchstart', function(e) {
                 if (!shouldSaveSelectionTarget(e.target)) return;
                 toolbar._hgSkipFocusRestore = true;
-                closeMobileKeyboardIfNeeded();
                 saveRange();
-            }, { capture: true, passive: true });
+                if (shouldDismissKeyboardForTarget(e.target)) {
+                    closeMobileKeyboardIfNeeded();
+                }
+                if (shouldPreventDefaultOnTouchStart(e.target) && e.cancelable) {
+                    e.preventDefault();
+                }
+            }, { capture: true, passive: false });
 
             toolbar.addEventListener('touchend', function(e) {
                 if (!shouldSaveSelectionTarget(e.target)) return;
@@ -712,7 +739,8 @@
                 requestAnimationFrame(function() {
                     requestAnimationFrame(restoreRange);
                 });
-            }, { capture: true, passive: true });
+                if (e.cancelable) e.preventDefault();
+            }, { capture: true, passive: false });
         })(quill);
 
         (function setupMobileCaretFromPoint(quill) {
@@ -901,6 +929,17 @@
                 item.className = 'ql-picker-item';
                 item.setAttribute('data-value', font.value);
                 item.addEventListener('click', function() { selectFont(font.value); });
+                item.addEventListener('pointerdown', function(e) {
+                    if (e.pointerType === 'mouse' && e.button !== 0) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    selectFont(font.value);
+                }, { passive: false });
+                item.addEventListener('touchstart', function(e) {
+                    if (e.cancelable) e.preventDefault();
+                    e.stopPropagation();
+                    selectFont(font.value);
+                }, { passive: false });
                 optionsContainer.appendChild(item);
             });
         })();
@@ -1559,6 +1598,13 @@
                 var rect = btn.getBoundingClientRect();
                 var gap = 8;
                 var viewportPad = 12;
+                var vv = window.visualViewport || null;
+                var vw = vv ? vv.width : window.innerWidth;
+                var vh = vv ? vv.height : window.innerHeight;
+                var vTop = vv ? vv.offsetTop : 0;
+                var vLeft = vv ? vv.offsetLeft : 0;
+                var vRight = vLeft + vw;
+                var vBottom = vTop + vh;
 
                 popover.style.position = 'fixed';
                 popover.style.right = 'auto';
@@ -1573,21 +1619,21 @@
 
                 // Горизонталь: стараемся выровнять по левому краю кнопки, но не вылезти за viewport.
                 var left = rect.left;
-                if (left + w > window.innerWidth - viewportPad) {
-                    left = window.innerWidth - viewportPad - w;
+                if (left + w > vRight - viewportPad) {
+                    left = vRight - viewportPad - w;
                 }
-                if (left < viewportPad) left = viewportPad;
+                if (left < vLeft + viewportPad) left = vLeft + viewportPad;
 
                 // Вертикаль: если снизу не хватает места — открываем вверх.
-                var spaceBelow = window.innerHeight - rect.bottom - gap - viewportPad;
-                var spaceAbove = rect.top - gap - viewportPad;
+                var spaceBelow = vBottom - rect.bottom - gap - viewportPad;
+                var spaceAbove = rect.top - vTop - gap - viewportPad;
                 var top = rect.bottom + gap;
                 if (spaceBelow < Math.min(h, 220) && spaceAbove > spaceBelow) {
                     top = rect.top - gap - h;
                 }
-                if (top < viewportPad) top = viewportPad;
-                if (top + h > window.innerHeight - viewportPad) {
-                    top = Math.max(viewportPad, window.innerHeight - viewportPad - h);
+                if (top < vTop + viewportPad) top = vTop + viewportPad;
+                if (top + h > vBottom - viewportPad) {
+                    top = Math.max(vTop + viewportPad, vBottom - viewportPad - h);
                 }
 
                 popover.style.left = Math.round(left) + 'px';
@@ -1608,6 +1654,10 @@
                 popoverScrollResizeBound = true;
                 window.addEventListener('scroll', scheduleRepositionPopover, true);
                 window.addEventListener('resize', scheduleRepositionPopover);
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', scheduleRepositionPopover, { passive: true });
+                    window.visualViewport.addEventListener('scroll', scheduleRepositionPopover, { passive: true });
+                }
             }
 
             function unbindPopoverReposition() {
@@ -1615,6 +1665,10 @@
                 popoverScrollResizeBound = false;
                 window.removeEventListener('scroll', scheduleRepositionPopover, true);
                 window.removeEventListener('resize', scheduleRepositionPopover);
+                if (window.visualViewport) {
+                    window.visualViewport.removeEventListener('resize', scheduleRepositionPopover);
+                    window.visualViewport.removeEventListener('scroll', scheduleRepositionPopover);
+                }
                 if (popoverReposRaf) {
                     cancelAnimationFrame(popoverReposRaf);
                     popoverReposRaf = 0;
@@ -1895,17 +1949,31 @@
             if (!vv) return;
             var mq = window.matchMedia('(max-width: 768px)');
             var raf = 0;
-            var KEYBOARD_GAP_PX = 140;
+            var baselineViewportHeight = 0;
+            var MIN_KEYBOARD_DELTA = 120;
+            var CLOSE_HYSTERESIS = 76;
 
             function tick() {
                 raf = 0;
                 if (!mq.matches) {
                     document.body.classList.remove('page-editor--keyboard-open');
+                    baselineViewportHeight = 0;
                     return;
                 }
-                var layoutH = window.innerHeight || 0;
-                var gap = layoutH - (vv.height || 0);
-                document.body.classList.toggle('page-editor--keyboard-open', gap > KEYBOARD_GAP_PX);
+                var visualHeight = vv.height || window.innerHeight || 0;
+                var isOpenNow = document.body.classList.contains('page-editor--keyboard-open');
+
+                if (!baselineViewportHeight || visualHeight > baselineViewportHeight) {
+                    baselineViewportHeight = visualHeight;
+                }
+
+                var delta = baselineViewportHeight - visualHeight;
+                if (!isOpenNow && delta >= MIN_KEYBOARD_DELTA) {
+                    document.body.classList.add('page-editor--keyboard-open');
+                } else if (isOpenNow && delta <= CLOSE_HYSTERESIS) {
+                    document.body.classList.remove('page-editor--keyboard-open');
+                    if (visualHeight > baselineViewportHeight) baselineViewportHeight = visualHeight;
+                }
             }
 
             function schedule() {

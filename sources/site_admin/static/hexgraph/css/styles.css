@@ -2751,7 +2751,7 @@ body.preview-modal-open {
     body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools {
         display: grid;
         grid-auto-flow: column;
-        grid-template-rows: repeat(2, minmax(34px, auto));
+        grid-template-rows: repeat(2, minmax(44px, auto));
         grid-auto-columns: max-content;
         justify-content: start;
         align-content: start;
@@ -2760,9 +2760,16 @@ body.preview-modal-open {
         row-gap: 5px;
         column-gap: 5px;
         overflow-x: auto;
-        overflow-y: hidden;
+        overflow-y: visible;
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
+    }
+
+    body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools button,
+    body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools .ql-picker-label,
+    body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools .ql-picker-item {
+        min-width: 44px;
+        min-height: 44px;
     }
 
     body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools::-webkit-scrollbar {

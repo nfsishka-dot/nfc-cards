@@ -244,6 +244,7 @@
         }
 
         var activeDrag = null; // { mode: 'sv'|'hue', pointerId: number }
+        var supportsPointer = !!window.PointerEvent;
 
         function setActiveDrag(mode, pointerId, target) {
             activeDrag = { mode: mode, pointerId: pointerId };
@@ -274,14 +275,68 @@
             setHueFromClient(e.clientX);
         }
 
-        canvas.addEventListener('pointerdown', onSvDown);
-        svMarker.addEventListener('pointerdown', onSvDown);
+        function bindPointerPath() {
+            canvas.addEventListener('pointerdown', onSvDown);
+            svMarker.addEventListener('pointerdown', onSvDown);
+            hueTrack.addEventListener('pointerdown', onHueDown);
+            hueThumb.addEventListener('pointerdown', function (e) {
+                e.stopPropagation();
+                onHueDown(e);
+            });
+            document.addEventListener('pointermove', onDocMove);
+            document.addEventListener('pointerup', onDocUp);
+            document.addEventListener('pointercancel', onDocUp);
+        }
 
-        hueTrack.addEventListener('pointerdown', onHueDown);
-        hueThumb.addEventListener('pointerdown', function (e) {
-            e.stopPropagation();
-            onHueDown(e);
-        });
+        function normalizeTouchPoint(e) {
+            var t = (e.touches && e.touches[0]) || (e.changedTouches && e.changedTouches[0]);
+            if (!t) return null;
+            return { clientX: t.clientX, clientY: t.clientY };
+        }
+
+        function onSvTouchStart(e) {
+            var p = normalizeTouchPoint(e);
+            if (!p) return;
+            if (e.cancelable) e.preventDefault();
+            setActiveDrag('sv', -1, null);
+            setSvFromClient(p.clientX, p.clientY);
+        }
+
+        function onHueTouchStart(e) {
+            var p = normalizeTouchPoint(e);
+            if (!p) return;
+            if (e.cancelable) e.preventDefault();
+            setActiveDrag('hue', -1, null);
+            setHueFromClient(p.clientX);
+        }
+
+        function onDocTouchMove(e) {
+            if (!activeDrag || activeDrag.pointerId !== -1) return;
+            var p = normalizeTouchPoint(e);
+            if (!p) return;
+            if (e.cancelable) e.preventDefault();
+            if (activeDrag.mode === 'sv') setSvFromClient(p.clientX, p.clientY);
+            else if (activeDrag.mode === 'hue') setHueFromClient(p.clientX);
+        }
+
+        function onDocTouchEnd(e) {
+            if (!activeDrag || activeDrag.pointerId !== -1) return;
+            clearActiveDrag();
+            if (e.cancelable) e.preventDefault();
+        }
+
+        function bindTouchFallbackPath() {
+            canvas.addEventListener('touchstart', onSvTouchStart, { passive: false });
+            svMarker.addEventListener('touchstart', onSvTouchStart, { passive: false });
+            hueTrack.addEventListener('touchstart', onHueTouchStart, { passive: false });
+            hueThumb.addEventListener('touchstart', function (e) {
+                e.stopPropagation();
+                onHueTouchStart(e);
+            }, { passive: false });
+            document.addEventListener('touchmove', onDocTouchMove, { passive: false });
+            document.addEventListener('touchend', onDocTouchEnd, { passive: false });
+            document.addEventListener('touchcancel', onDocTouchEnd, { passive: false });
+        }
 
         function onDocMove(e) {
             if (!activeDrag || activeDrag.pointerId !== e.pointerId) return;
@@ -298,9 +353,8 @@
             clearActiveDrag();
         }
 
-        document.addEventListener('pointermove', onDocMove);
-        document.addEventListener('pointerup', onDocUp);
-        document.addEventListener('pointercancel', onDocUp);
+        if (supportsPointer) bindPointerPath();
+        else bindTouchFallbackPath();
 
         function onResize() {
             paint();
@@ -316,9 +370,15 @@
             },
             getHex: currentHex,
             destroy: function () {
-                document.removeEventListener('pointermove', onDocMove);
-                document.removeEventListener('pointerup', onDocUp);
-                document.removeEventListener('pointercancel', onDocUp);
+                if (supportsPointer) {
+                    document.removeEventListener('pointermove', onDocMove);
+                    document.removeEventListener('pointerup', onDocUp);
+                    document.removeEventListener('pointercancel', onDocUp);
+                } else {
+                    document.removeEventListener('touchmove', onDocTouchMove);
+                    document.removeEventListener('touchend', onDocTouchEnd);
+                    document.removeEventListener('touchcancel', onDocTouchEnd);
+                }
                 if (rafId) {
                     window.cancelAnimationFrame(rafId);
                     rafId = null;
