@@ -950,7 +950,7 @@ body.page-editor #editor-container .ql-editor.ql-blank::before {
 body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn),
 body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn),
 body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker {
-    background: #f4f4f5 !important;
+    background: #ffffff !important;
     border: 1px solid rgba(17, 24, 39, 0.08) !important;
     box-shadow: none !important;
 }
@@ -958,7 +958,7 @@ body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker {
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header .ql-picker-label,
 body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label,
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label {
-    background: #f4f4f5 !important;
+    background: #ffffff !important;
     border: 1px solid rgba(17, 24, 39, 0.08) !important;
     box-shadow: none !important;
 }
@@ -969,7 +969,7 @@ body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker:hover,
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header .ql-picker-label:hover,
 body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label:hover,
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label:hover {
-    background: #ececee !important;
+    background: #ffffff !important;
     border-color: rgba(17, 24, 39, 0.11) !important;
     box-shadow: none !important;
     transform: translateY(-1px);
@@ -983,7 +983,7 @@ body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label.q
 body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header).ql-expanded .ql-picker-label,
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header.ql-expanded .ql-picker-label,
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font.ql-expanded .ql-picker-label {
-    background: #e4e4e7 !important;
+    background: #ffffff !important;
     border-color: rgba(17, 24, 39, 0.14) !important;
     box-shadow: none !important;
 }
