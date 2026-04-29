@@ -28,8 +28,8 @@
     --radius-sm: 12px;
     --tap: 44px;
     --toolbar-gap: 8px;
-    /* Шире обычной кнопки, но визуально в том же ритме ряда */
-    --font-picker-width: calc(2.35 * var(--tap) + var(--toolbar-gap));
+    /* Ровно 2 квадратные кнопки + один gap между ними */
+    --font-picker-width: calc(2 * var(--tap) + var(--toolbar-gap));
     --content-max: 1520px;
 }
 
@@ -2680,7 +2680,7 @@ body.preview-modal-open {
     body.page-editor-html {
         --tap: 44px;
         --toolbar-gap: 8px;
-        --font-picker-width: calc(2.35 * var(--tap) + var(--toolbar-gap));
+        --font-picker-width: calc(2 * var(--tap) + var(--toolbar-gap));
     }
 
     main {
