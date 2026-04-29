@@ -173,6 +173,21 @@
             return 'Инструмент оформления текста.';
         }
 
+        /** «Название. Описание» из одной строки справки — для двухстрочной карточки. */
+        function splitHelpLine(text) {
+            text = String(text || '').trim();
+            if (!text) return { title: '', body: '' };
+            var cut = text.indexOf('. ');
+            if (cut !== -1) {
+                return { title: text.slice(0, cut + 1).trim(), body: text.slice(cut + 2).trim() };
+            }
+            var cut2 = text.indexOf('.', 1);
+            if (cut2 !== -1 && cut2 < text.length - 1) {
+                return { title: text.slice(0, cut2 + 1).trim(), body: text.slice(cut2 + 1).replace(/^\s+/, '') };
+            }
+            return { title: text, body: '' };
+        }
+
         function buildHelpList() {
             if (!listEl) return;
             listEl.innerHTML = '';
@@ -202,7 +217,7 @@
 
             controls.forEach(function (original) {
                 var row = document.createElement('div');
-                row.className = 'hg-help-modal__row';
+                row.className = 'hg-help-modal__row hg-help-modal__card';
                 row.setAttribute('role', 'listitem');
 
                 var swatch = document.createElement('div');
@@ -223,12 +238,22 @@
                 chrome.appendChild(tb);
                 swatch.appendChild(chrome);
 
-                var desc = document.createElement('p');
-                desc.className = 'hg-help-modal__desc';
-                desc.textContent = helpTextForControl(original);
+                var textCol = document.createElement('div');
+                textCol.className = 'hg-help-modal__text';
+                var parts = splitHelpLine(helpTextForControl(original));
+                var titleEl = document.createElement('div');
+                titleEl.className = 'hg-help-modal__card-title';
+                titleEl.textContent = parts.title;
+                textCol.appendChild(titleEl);
+                if (parts.body) {
+                    var desc = document.createElement('p');
+                    desc.className = 'hg-help-modal__card-desc';
+                    desc.textContent = parts.body;
+                    textCol.appendChild(desc);
+                }
 
                 row.appendChild(swatch);
-                row.appendChild(desc);
+                row.appendChild(textCol);
                 listEl.appendChild(row);
             });
         }

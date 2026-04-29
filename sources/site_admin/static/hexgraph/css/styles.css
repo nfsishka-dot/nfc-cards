@@ -1728,41 +1728,73 @@ body.is-resizing-editor-image {
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding: 10px 14px 4px;
+    padding: 10px 14px 16px;
 }
 
 .hg-help-modal__list {
     display: flex;
     flex-direction: column;
-    gap: 0;
+    gap: 10px;
 }
 
-.hg-help-modal__row {
-    display: flex;
-    flex-direction: row;
+.hg-help-modal__row.hg-help-modal__card {
+    --hg-help-icon-col: 64px;
+    display: grid;
+    grid-template-columns: var(--hg-help-icon-col) minmax(0, 1fr);
+    column-gap: 14px;
+    row-gap: 0;
     align-items: center;
-    gap: 14px;
-    padding: 10px 4px;
-    border-bottom: 1px solid rgba(17, 24, 39, 0.05);
-}
-
-.hg-help-modal__row:last-child {
-    border-bottom: none;
+    padding: 12px 10px;
+    border-radius: 14px;
+    background: rgba(17, 24, 39, 0.025);
+    border: 1px solid rgba(17, 24, 39, 0.06);
+    box-sizing: border-box;
 }
 
 .hg-help-modal__swatch {
-    flex: 0 0 auto;
+    grid-column: 1;
+    width: var(--hg-help-icon-col);
+    min-width: var(--hg-help-icon-col);
+    max-width: var(--hg-help-icon-col);
+    min-height: var(--tap);
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: var(--font-picker-width);
     pointer-events: none;
+    overflow: hidden;
+}
+
+.hg-help-modal__text {
+    grid-column: 2;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding-top: 0;
+}
+
+.hg-help-modal__card-title {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+    color: rgba(17, 24, 39, 0.92);
+}
+
+.hg-help-modal__card-desc {
+    margin: 0;
+    font-size: 0.84rem;
+    font-weight: 450;
+    line-height: 1.45;
+    letter-spacing: -0.01em;
+    color: rgba(17, 24, 39, 0.72);
 }
 
 /* Мини-оболочка: те же селекторы .editor-shell .ql-toolbar, без «листа» 540px */
 .hg-help-modal__fake-shell {
-    width: auto !important;
-    max-width: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
     min-height: 0 !important;
     min-width: 0 !important;
     margin: 0 !important;
@@ -1814,14 +1846,24 @@ body.is-resizing-editor-image {
     gap: 0 !important;
 }
 
-.hg-help-modal__desc {
-    flex: 1 1 auto;
-    min-width: 0;
-    margin: 0;
-    font-size: 0.9rem;
-    line-height: 1.38;
-    letter-spacing: -0.01em;
-    color: rgba(17, 24, 39, 0.88);
+/* В модалке справки широкий пикер шрифта не должен раздувать колонку — только превью. */
+.hg-help-modal__fake-shell .ql-picker.ql-font {
+    flex: 0 0 auto !important;
+    width: var(--hg-help-icon-col) !important;
+    min-width: var(--hg-help-icon-col) !important;
+    max-width: var(--hg-help-icon-col) !important;
+    height: var(--tap) !important;
+    overflow: hidden !important;
+}
+
+.hg-help-modal__fake-shell .ql-picker.ql-font .ql-picker-label {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 0 4px !important;
+    font-size: 0.62rem !important;
+    justify-content: center !important;
+    text-overflow: ellipsis !important;
 }
 
 .hg-help-modal__foot {
@@ -1859,16 +1901,21 @@ body.is-resizing-editor-image {
     }
 
     .hg-help-modal__scroll {
-        padding: 12px 18px 6px;
+        padding: 12px 18px 20px;
     }
 
-    .hg-help-modal__row {
-        gap: 18px;
-        padding: 11px 6px;
+    .hg-help-modal__row.hg-help-modal__card {
+        --hg-help-icon-col: 68px;
+        column-gap: 16px;
+        padding: 14px 12px;
     }
 
-    .hg-help-modal__desc {
-        font-size: 0.93rem;
+    .hg-help-modal__card-title {
+        font-size: 0.95rem;
+    }
+
+    .hg-help-modal__card-desc {
+        font-size: 0.88rem;
     }
 }
 
@@ -1893,16 +1940,43 @@ body.is-resizing-editor-image {
     }
 
     .hg-help-modal__scroll {
-        padding: 8px 10px 2px;
+        padding: 8px 10px 14px;
     }
 
-    .hg-help-modal__row {
-        gap: 10px;
-        padding: 8px 2px;
+    .hg-help-modal__row.hg-help-modal__card {
+        --hg-help-icon-col: 56px;
+        column-gap: 10px;
+        padding: 10px 8px;
     }
 
-    .hg-help-modal__desc {
-        font-size: 0.86rem;
+    .hg-help-modal__card-desc {
+        font-size: 0.82rem;
+    }
+}
+
+/* Очень узкий экран: иконка сверху по центру, текст на всю ширину — без «столбика». */
+@media (max-width: 340px) {
+    .hg-help-modal__row.hg-help-modal__card {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto;
+        row-gap: 10px;
+        padding: 12px 10px;
+    }
+
+    .hg-help-modal__swatch {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: center;
+        width: var(--hg-help-icon-col);
+        min-width: var(--hg-help-icon-col);
+        max-width: var(--hg-help-icon-col);
+    }
+
+    .hg-help-modal__text {
+        grid-column: 1;
+        grid-row: 2;
+        align-items: stretch;
+        text-align: left;
     }
 }
 
