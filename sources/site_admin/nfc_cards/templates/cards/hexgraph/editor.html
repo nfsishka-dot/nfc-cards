@@ -1481,10 +1481,16 @@
             var btn = document.createElement('button');
             btn.type = 'button';
             btn.className = 'ql-post-bg-picker';
-            btn.setAttribute('aria-label', 'Post background');
+            btn.setAttribute('aria-label', 'Фон открытки');
+            btn.setAttribute('title', 'Фон открытки');
+            var bgIcon = document.createElement('span');
+            bgIcon.className = 'ql-post-bg-picker-icon';
+            bgIcon.setAttribute('aria-hidden', 'true');
+            bgIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><circle cx="9" cy="10" r="1.4"/><path d="m5.5 16 4.2-4.2a1.4 1.4 0 0 1 2 0l1.8 1.8"/><path d="m12.8 15.6 2.1-2.1a1.4 1.4 0 0 1 2 0l1.6 1.6"/></svg>';
             var swatch = document.createElement('span');
             swatch.className = 'ql-post-bg-picker-swatch';
             swatch.setAttribute('aria-hidden', 'true');
+            btn.appendChild(bgIcon);
             btn.appendChild(swatch);
             btnFormat.appendChild(btn);
             toolbar.appendChild(btnFormat);

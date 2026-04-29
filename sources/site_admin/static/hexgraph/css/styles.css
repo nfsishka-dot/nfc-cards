@@ -28,8 +28,8 @@
     --radius-sm: 12px;
     --tap: 44px;
     --toolbar-gap: 8px;
-    /* Ровно 2 квадратные кнопки + один gap между ними */
-    --font-picker-width: calc(2 * var(--tap) + var(--toolbar-gap));
+    /* Шире обычной кнопки, но визуально в том же ритме ряда */
+    --font-picker-width: calc(2.35 * var(--tap) + var(--toolbar-gap));
     --content-max: 1520px;
 }
 
@@ -711,18 +711,35 @@ body.page-editor #editor-container .ql-editor.ql-blank::before {
 
 .ql-toolbar .ql-post-bg-picker .ql-post-bg-picker-swatch {
     display: block;
-    width: 20px;
-    height: 20px;
+    width: 18px;
+    height: 18px;
     flex-shrink: 0;
-    border-radius: 6px;
+    border-radius: 5px;
     box-sizing: border-box;
-    border: 1px solid rgba(0, 0, 0, 0.14);
+    border: 1px solid rgba(17, 24, 39, 0.28);
     box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35);
     overflow: hidden;
     pointer-events: none;
     background-size: cover !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
+}
+
+.ql-toolbar .ql-post-bg-picker .ql-post-bg-picker-icon {
+    display: inline-flex;
+    width: 16px;
+    height: 16px;
+    margin-right: 5px;
+    align-items: center;
+    justify-content: center;
+    color: rgba(17, 24, 39, 0.72);
+    pointer-events: none;
+}
+
+.ql-toolbar .ql-post-bg-picker .ql-post-bg-picker-icon svg {
+    width: 16px;
+    height: 16px;
+    display: block;
 }
 
 /* --- Type 1d: заголовки (размер/уровень) — квадрат 44×44, не «длинный select» --- */
@@ -951,7 +968,7 @@ body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.edito
 body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn),
 body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker {
     background: #ffffff !important;
-    border: 1px solid rgba(17, 24, 39, 0.08) !important;
+    border: 1px solid rgba(17, 24, 39, 0.10) !important;
     box-shadow: none !important;
 }
 
@@ -959,7 +976,7 @@ body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header .ql-picker-label
 body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label,
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label {
     background: #ffffff !important;
-    border: 1px solid rgba(17, 24, 39, 0.08) !important;
+    border: 1px solid rgba(17, 24, 39, 0.10) !important;
     box-shadow: none !important;
 }
 
@@ -970,13 +987,14 @@ body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header .ql-picker-label
 body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label:hover,
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label:hover {
     background: #ffffff !important;
-    border-color: rgba(17, 24, 39, 0.11) !important;
+    border-color: rgba(17, 24, 39, 0.10) !important;
     box-shadow: none !important;
     transform: translateY(-1px);
 }
 
 body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > button:not(.editor-submit-btn).ql-active,
 body.page-editor .editor-shell .ql-toolbar .ql-formats > button:not(.editor-submit-btn).ql-active,
+body.page-editor .editor-shell .ql-toolbar .ql-post-bg-picker.ql-active,
 body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-header) .ql-picker-label.ql-active,
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header .ql-picker-label.ql-active,
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label.ql-active,
@@ -984,7 +1002,7 @@ body.page-editor .editor-shell .ql-toolbar .ql-picker:not(.ql-font):not(.ql-head
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-header.ql-expanded .ql-picker-label,
 body.page-editor .editor-shell .ql-toolbar .ql-picker.ql-font.ql-expanded .ql-picker-label {
     background: #ffffff !important;
-    border-color: rgba(17, 24, 39, 0.14) !important;
+    border-color: rgba(17, 24, 39, 0.10) !important;
     box-shadow: none !important;
 }
 
@@ -2662,7 +2680,7 @@ body.preview-modal-open {
     body.page-editor-html {
         --tap: 44px;
         --toolbar-gap: 8px;
-        --font-picker-width: calc(2 * var(--tap) + var(--toolbar-gap));
+        --font-picker-width: calc(2.35 * var(--tap) + var(--toolbar-gap));
     }
 
     main {
