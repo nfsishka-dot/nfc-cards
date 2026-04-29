@@ -1651,8 +1651,11 @@ body.is-resizing-editor-image {
     position: relative;
     z-index: 1;
     place-self: center;
-    width: min(100%, 520px);
-    max-width: 100%;
+    width: min(
+        100% - max(0px, env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)),
+        640px
+    );
+    max-width: calc(100% - max(20px, env(safe-area-inset-left, 0px) + env(safe-area-inset-right, 0px)));
     max-height: min(88vh, 720px);
     box-sizing: border-box;
     display: flex;
@@ -1670,12 +1673,16 @@ body.is-resizing-editor-image {
 
 .hg-help-modal__head {
     flex: 0 0 auto;
+    position: sticky;
+    top: 0;
+    z-index: 4;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 12px;
     padding: 18px 18px 12px;
     border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+    background: #fffefb;
 }
 
 .hg-help-modal__head-text {
@@ -1724,74 +1731,85 @@ body.is-resizing-editor-image {
 .hg-help-modal__scroll {
     flex: 1 1 auto;
     min-height: 0;
+    min-width: 0;
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    padding: 10px 14px 16px;
+    padding: 12px 16px 24px;
 }
 
 .hg-help-modal__list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 0;
 }
 
 .hg-help-modal__row.hg-help-modal__card {
-    --hg-help-icon-col: 64px;
+    --hg-help-icon-col: 48px;
     display: grid;
     grid-template-columns: var(--hg-help-icon-col) minmax(0, 1fr);
-    column-gap: 14px;
-    row-gap: 0;
-    align-items: center;
-    padding: 12px 10px;
-    border-radius: 14px;
-    background: rgba(17, 24, 39, 0.025);
-    border: 1px solid rgba(17, 24, 39, 0.06);
+    column-gap: 18px;
+    align-items: start;
+    padding: 18px 16px;
+    margin: 0;
     box-sizing: border-box;
+    min-width: 0;
+    border: none;
+    border-bottom: 1px solid rgba(17, 24, 39, 0.1);
+    border-radius: 0;
+    background: transparent;
+}
+
+.hg-help-modal__row.hg-help-modal__card:last-child {
+    border-bottom: none;
 }
 
 .hg-help-modal__swatch {
     grid-column: 1;
     width: var(--hg-help-icon-col);
-    min-width: var(--hg-help-icon-col);
+    height: var(--hg-help-icon-col);
+    min-width: 0;
     max-width: var(--hg-help-icon-col);
-    min-height: var(--tap);
+    min-height: var(--hg-help-icon-col);
+    max-height: var(--hg-help-icon-col);
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
     pointer-events: none;
     overflow: hidden;
+    contain: strict;
 }
 
 .hg-help-modal__text {
     grid-column: 2;
     min-width: 0;
+    max-width: 100%;
     display: flex;
     flex-direction: column;
-    gap: 5px;
-    padding-top: 0;
+    gap: 6px;
 }
 
 .hg-help-modal__card-title {
     margin: 0;
-    font-size: 0.92rem;
+    font-size: 0.95rem;
     font-weight: 700;
-    line-height: 1.25;
+    line-height: 1.3;
     letter-spacing: -0.02em;
     color: rgba(17, 24, 39, 0.92);
 }
 
 .hg-help-modal__card-desc {
     margin: 0;
-    font-size: 0.84rem;
+    font-size: 0.875rem;
     font-weight: 450;
-    line-height: 1.45;
+    line-height: 1.55;
     letter-spacing: -0.01em;
     color: rgba(17, 24, 39, 0.72);
 }
 
-/* Мини-оболочка: те же селекторы .editor-shell .ql-toolbar, без «листа» 540px */
+/* Мини-оболочка: класс editor-shell нужен для визуала кнопок; ширину режем overflow + переопределения V10 ниже */
 .hg-help-modal__fake-shell {
     width: 100% !important;
     max-width: 100% !important;
@@ -1803,7 +1821,7 @@ body.is-resizing-editor-image {
     border-radius: 0 !important;
     box-shadow: none !important;
     background: transparent !important;
-    overflow: visible !important;
+    overflow: hidden !important;
     display: block !important;
 }
 
@@ -1812,9 +1830,9 @@ body.is-resizing-editor-image {
  * Сами кнопки/пикеры — те же классы и переменные, что у .editor-shell .ql-toolbar.
  */
 .hg-help-modal__fake-shell > .ql-toolbar {
-    width: auto !important;
+    width: 100% !important;
     min-width: 0 !important;
-    max-width: none !important;
+    max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
@@ -1868,9 +1886,12 @@ body.is-resizing-editor-image {
 
 .hg-help-modal__foot {
     flex: 0 0 auto;
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
     padding: 12px 16px max(14px, env(safe-area-inset-bottom, 0px));
     border-top: 1px solid rgba(17, 24, 39, 0.06);
-    background: rgba(252, 251, 249, 0.96);
+    background: #fffefb;
 }
 
 .hg-help-modal__btn-close {
@@ -1890,9 +1911,24 @@ body.is-resizing-editor-image {
     transform: scale(0.99);
 }
 
+@media (min-width: 601px) {
+    .hg-help-modal__row.hg-help-modal__card {
+        --hg-help-icon-col: 56px;
+        column-gap: 20px;
+        padding: 20px 18px;
+    }
+
+    .hg-help-modal__card-title {
+        font-size: 0.98rem;
+    }
+
+    .hg-help-modal__card-desc {
+        font-size: 0.9rem;
+    }
+}
+
 @media (min-width: 600px) {
     .hg-help-modal__panel {
-        width: min(100%, 480px);
         border-radius: 24px;
     }
 
@@ -1901,28 +1937,7 @@ body.is-resizing-editor-image {
     }
 
     .hg-help-modal__scroll {
-        padding: 12px 18px 20px;
-    }
-
-    .hg-help-modal__row.hg-help-modal__card {
-        --hg-help-icon-col: 68px;
-        column-gap: 16px;
-        padding: 14px 12px;
-    }
-
-    .hg-help-modal__card-title {
-        font-size: 0.95rem;
-    }
-
-    .hg-help-modal__card-desc {
-        font-size: 0.88rem;
-    }
-}
-
-@media (min-width: 900px) {
-    .hg-help-modal__panel {
-        width: min(100%, 520px);
-        max-height: min(82vh, 680px);
+        padding: 14px 20px 28px;
     }
 }
 
@@ -1940,43 +1955,15 @@ body.is-resizing-editor-image {
     }
 
     .hg-help-modal__scroll {
-        padding: 8px 10px 14px;
+        padding: 10px 12px 20px;
     }
 
     .hg-help-modal__row.hg-help-modal__card {
-        --hg-help-icon-col: 56px;
-        column-gap: 10px;
-        padding: 10px 8px;
+        padding: 16px 12px;
     }
 
     .hg-help-modal__card-desc {
-        font-size: 0.82rem;
-    }
-}
-
-/* Очень узкий экран: иконка сверху по центру, текст на всю ширину — без «столбика». */
-@media (max-width: 340px) {
-    .hg-help-modal__row.hg-help-modal__card {
-        grid-template-columns: 1fr;
-        grid-template-rows: auto auto;
-        row-gap: 10px;
-        padding: 12px 10px;
-    }
-
-    .hg-help-modal__swatch {
-        grid-column: 1;
-        grid-row: 1;
-        justify-self: center;
-        width: var(--hg-help-icon-col);
-        min-width: var(--hg-help-icon-col);
-        max-width: var(--hg-help-icon-col);
-    }
-
-    .hg-help-modal__text {
-        grid-column: 1;
-        grid-row: 2;
-        align-items: stretch;
-        text-align: left;
+        font-size: 0.84rem;
     }
 }
 
@@ -3838,4 +3825,48 @@ body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-post-bg-picke
         min-width: 0;
         grid-template-columns: repeat(7, var(--tap));
     }
+}
+
+/*
+ * Справка: клон тулбара внутри модалки тоже имеет .editor-shell — на него навешивается
+ * CANONICAL EDITOR TOOLBAR UI (V10) с display:grid и шириной ~7×tap. Ниже — жёсткий
+ * откат только внутри .hg-help-modal (специфичность выше, чем у body.page-editor .editor-shell …).
+ */
+body.page-editor .hg-help-modal .hg-help-modal__fake-shell.editor-shell .ql-toolbar .ql-toolbar-tools {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    grid-template-columns: none !important;
+    grid-template-rows: none !important;
+    grid-auto-flow: initial !important;
+    column-gap: 0 !important;
+    row-gap: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    justify-content: center !important;
+    align-items: center !important;
+    align-content: initial !important;
+}
+
+body.page-editor .hg-help-modal .hg-help-modal__fake-shell.editor-shell .ql-toolbar .ql-toolbar-tools > * {
+    grid-column: auto !important;
+    order: 0 !important;
+}
+
+body.page-editor .hg-help-modal .hg-help-modal__fake-shell.editor-shell .ql-toolbar .ql-picker.ql-font {
+    width: var(--hg-help-icon-col) !important;
+    min-width: 0 !important;
+    max-width: var(--hg-help-icon-col) !important;
+    flex: 0 0 var(--hg-help-icon-col) !important;
+}
+
+body.page-editor .hg-help-modal .hg-help-modal__fake-shell.editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 0 4px !important;
+    justify-content: center !important;
+    font-size: 0.62rem !important;
 }
