@@ -1809,79 +1809,33 @@ body.is-resizing-editor-image {
     color: rgba(17, 24, 39, 0.72);
 }
 
-/* Мини-оболочка: класс editor-shell нужен для визуала кнопок; ширину режем overflow + переопределения V10 ниже */
-.hg-help-modal__fake-shell {
-    width: 100% !important;
-    max-width: 100% !important;
-    min-height: 0 !important;
-    min-width: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    background: transparent !important;
-    overflow: hidden !important;
-    display: block !important;
+.hg-help-modal__icon-control {
+    pointer-events: none;
 }
 
-/*
- * Только сброс «полосы» тулбара: без второй белой подложки.
- * Сами кнопки/пикеры — те же классы и переменные, что у .editor-shell .ql-toolbar.
- */
-.hg-help-modal__fake-shell > .ql-toolbar {
+.hg-help-modal__swatch > .hg-help-modal__icon-control,
+.hg-help-modal__swatch > .hg-help-modal__icon-control.ql-picker,
+.hg-help-modal__swatch > .hg-help-modal__icon-control.ql-post-bg-picker {
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    max-height: 44px !important;
+    margin: 0 !important;
+    flex: 0 0 44px !important;
+}
+
+.hg-help-modal__swatch > .hg-help-modal__icon-control.ql-picker .ql-picker-label {
     width: 100% !important;
     min-width: 0 !important;
     max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    border-radius: 0 !important;
-    border-bottom: none !important;
-    background: transparent !important;
-    box-shadow: none !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    justify-content: center !important;
-    align-items: center !important;
-    flex-wrap: nowrap !important;
-    gap: 0 !important;
-    position: relative !important;
-    z-index: auto !important;
-}
-
-.hg-help-modal__fake-shell .ql-toolbar-tools {
-    flex: 0 0 auto !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    align-items: center !important;
-    justify-content: center !important;
-    gap: 0 !important;
-}
-
-/* В модалке справки широкий пикер шрифта не должен раздувать колонку — только превью. */
-.hg-help-modal__fake-shell .ql-picker.ql-font {
-    flex: 0 0 auto !important;
-    width: var(--hg-help-icon-col) !important;
-    min-width: var(--hg-help-icon-col) !important;
-    max-width: var(--hg-help-icon-col) !important;
-    height: var(--tap) !important;
-    overflow: hidden !important;
-}
-
-.hg-help-modal__fake-shell .ql-picker.ql-font .ql-picker-label {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
+    height: 100% !important;
+    min-height: 44px !important;
     padding: 0 4px !important;
-    font-size: 0.62rem !important;
     justify-content: center !important;
     text-overflow: ellipsis !important;
+    overflow: hidden !important;
 }
 
 .hg-help-modal__foot {
@@ -3827,46 +3781,3 @@ body.page-editor .editor-shell .ql-toolbar .ql-toolbar-tools > .ql-post-bg-picke
     }
 }
 
-/*
- * Справка: клон тулбара внутри модалки тоже имеет .editor-shell — на него навешивается
- * CANONICAL EDITOR TOOLBAR UI (V10) с display:grid и шириной ~7×tap. Ниже — жёсткий
- * откат только внутри .hg-help-modal (специфичность выше, чем у body.page-editor .editor-shell …).
- */
-body.page-editor .hg-help-modal .hg-help-modal__fake-shell.editor-shell .ql-toolbar .ql-toolbar-tools {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    grid-template-columns: none !important;
-    grid-template-rows: none !important;
-    grid-auto-flow: initial !important;
-    column-gap: 0 !important;
-    row-gap: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    justify-content: center !important;
-    align-items: center !important;
-    align-content: initial !important;
-}
-
-body.page-editor .hg-help-modal .hg-help-modal__fake-shell.editor-shell .ql-toolbar .ql-toolbar-tools > * {
-    grid-column: auto !important;
-    order: 0 !important;
-}
-
-body.page-editor .hg-help-modal .hg-help-modal__fake-shell.editor-shell .ql-toolbar .ql-picker.ql-font {
-    width: var(--hg-help-icon-col) !important;
-    min-width: 0 !important;
-    max-width: var(--hg-help-icon-col) !important;
-    flex: 0 0 var(--hg-help-icon-col) !important;
-}
-
-body.page-editor .hg-help-modal .hg-help-modal__fake-shell.editor-shell .ql-toolbar .ql-picker.ql-font .ql-picker-label {
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    padding: 0 4px !important;
-    justify-content: center !important;
-    font-size: 0.62rem !important;
-}

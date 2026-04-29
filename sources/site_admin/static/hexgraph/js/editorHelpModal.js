@@ -223,20 +223,9 @@
                 var swatch = document.createElement('div');
                 swatch.className = 'hg-help-modal__swatch';
 
-                var chrome = document.createElement('div');
-                chrome.className = 'editor-shell hg-help-modal__fake-shell';
-                var tb = document.createElement('div');
-                tb.className = 'ql-toolbar ql-snow';
-                tb.setAttribute('data-toolbar-split', '1');
-                var tt = document.createElement('div');
-                tt.className = 'ql-toolbar-tools';
-
                 var clone = buildCloneFromToolbarControl(original);
-
-                tt.appendChild(clone);
-                tb.appendChild(tt);
-                chrome.appendChild(tb);
-                swatch.appendChild(chrome);
+                clone.classList.add('hg-help-modal__icon-control');
+                swatch.appendChild(clone);
 
                 var textCol = document.createElement('div');
                 textCol.className = 'hg-help-modal__text';
