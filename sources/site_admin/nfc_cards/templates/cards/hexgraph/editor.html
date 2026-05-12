@@ -658,14 +658,16 @@
             }
 
             /**
-             * Клик только открывает меню (не выбирает значение): не восстанавливаем selection/focus,
+             * Клик только открывает/ведёт по выпадающему меню (не выбирает пункт): не восстанавливаем selection/focus,
              * иначе setSelection + focus прокручивают страницу к каретке в длинной открытке.
-             * Выбор из списка — .ql-picker-item; там restore выполняем как раньше.
+             * Раньше проверяли только .ql-picker-label — клики по SVG/полотну .ql-formats и области списка без item всё ещё проходили в restore.
+             * Выбор значения — только .ql-picker-item (шрифт, заголовок, цвет, списки и т.д.).
              */
             function shouldSkipRestoreForMenuOpenClick(t) {
                 if (!t || !t.closest) return false;
-                if (t.closest('.ql-picker-label')) return true;
                 if (t.closest('.ql-post-bg-picker')) return true;
+                var picker = t.closest('.ql-picker');
+                if (picker && !t.closest('.ql-picker-item')) return true;
                 return false;
             }
 
