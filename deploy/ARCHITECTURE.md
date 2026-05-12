@@ -94,7 +94,7 @@ sudo bash deploy.sh
 
 ## 6. Nginx
 
-- `upstream gunicorn_app` → `unix:/run/gunicorn.sock` (как в `setup-vps.sh`)
+- `upstream gunicorn_app` → `unix:/run/gunicorn/app.sock` (как в `setup-vps.sh`; каталог `/run/gunicorn/` создаётся `RuntimeDirectory=gunicorn`)
 - Статика/медиа: alias на `${DJANGO_ROOT}/staticfiles/` и `.../media/`
 - После смены путей на сервере: `nginx -t && systemctl reload nginx`
 

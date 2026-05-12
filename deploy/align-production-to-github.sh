@@ -12,7 +12,7 @@
 #   PROD_ROOT=/var/www/nfc-cards
 #   DEPLOY_USER=deploy
 #   GIT_ORIGIN=https://github.com/nfsishka-dot/nfc-cards.git
-#   GUNICORN_SOCK=/run/gunicorn.sock
+#   GUNICORN_SOCK=/run/gunicorn/app.sock
 # =============================================================================
 set -euo pipefail
 
@@ -30,7 +30,7 @@ DJANGO_ROOT="${PROD_ROOT}/sources/site_admin"
 VENV="${PROD_ROOT}/venv"
 ENV_FILE="${PROD_ROOT}/.env"
 GIT_ORIGIN="${GIT_ORIGIN:-https://github.com/nfsishka-dot/nfc-cards.git}"
-GUNICORN_SOCK="${GUNICORN_SOCK:-/run/gunicorn.sock}"
+GUNICORN_SOCK="${GUNICORN_SOCK:-/run/gunicorn/app.sock}"
 BACKUP_DIR="/root/nfc-align-backup-$(date +%Y%m%d-%H%M%S)"
 
 # -----------------------------------------------------------------------------

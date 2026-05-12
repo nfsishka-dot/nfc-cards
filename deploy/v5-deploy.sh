@@ -157,7 +157,8 @@ link_shared_media_into_release() {
 write_systemd_and_starter() {
   local app_user="$DEPLOY_USER"
   local dj="$BASE/current/sources/site_admin"
-  local sock="${GUNICORN_SOCK:-/run/gunicorn.sock}"
+  # Должен лежать ВНУТРИ каталога из RuntimeDirectory=gunicorn (/run/gunicorn/), иначе bind в /run/*.sock даёт Permission denied для не-root.
+  local sock="${GUNICORN_SOCK:-/run/gunicorn/app.sock}"
   local workers="${GUNICORN_WORKERS:-2}"
 
   cat > /usr/local/bin/app-start.sh <<EOF

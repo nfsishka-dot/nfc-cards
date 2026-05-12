@@ -33,7 +33,7 @@ DB_PASS_NEW="$(openssl rand -base64 24 | tr -d '/+=\n')"
 
 SECRET_KEY_NEW="$(openssl rand -base64 48 | tr -d '/+=\n')"
 
-GUNICORN_SOCK="/run/gunicorn.sock"
+GUNICORN_SOCK="/run/gunicorn/app.sock"
 # Количество воркеров gunicorn:
 #   1 CPU  → 2 workers (безопасное значение по умолчанию)
 #   2 CPU  → 3 workers, если RAM >= 1 GB (формула: 2*CPU + 1)

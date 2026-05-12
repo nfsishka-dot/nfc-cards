@@ -13,7 +13,7 @@
 #   DJANGO_SUBDIR=sources/site_admin  — подпапка с manage.py
 #   APP_USER=deploy
 #   VENV_PATH=...                     — если venv не в ${APP_BASE_DIR}/venv
-#   GUNICORN_SOCK=/run/gunicorn.sock  — должен совпадать с nginx upstream
+#   GUNICORN_SOCK=/run/gunicorn/app.sock  — должен совпадать с nginx upstream
 #   ENV_FILE_OVERRIDE=/path/.env     — если .env только в старом каталоге
 #
 # Не меняет Django settings и код приложения — только systemd и app-start.sh.
@@ -31,7 +31,7 @@ APP_BASE_DIR="${APP_BASE_DIR:-/var/www/nfc-cards}"
 DJANGO_SUBDIR="${DJANGO_SUBDIR:-sources/site_admin}"
 APP_USER="${APP_USER:-deploy}"
 WORKERS="${WORKERS:-2}"
-GUNICORN_SOCK="${GUNICORN_SOCK:-/run/gunicorn.sock}"
+GUNICORN_SOCK="${GUNICORN_SOCK:-/run/gunicorn/app.sock}"
 
 # Django root: PROD_ROOT/sources/site_admin (см. deploy/ARCHITECTURE.md)
 DJANGO_ROOT="${APP_BASE_DIR}/${DJANGO_SUBDIR}"

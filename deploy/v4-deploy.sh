@@ -119,7 +119,7 @@ link_shared_media_into_release() {
 write_systemd_and_starter() {
   local app_user="$DEPLOY_USER"
   local dj="$BASE/current/sources/site_admin"
-  local sock="${GUNICORN_SOCK:-/run/gunicorn.sock}"
+  local sock="${GUNICORN_SOCK:-/run/gunicorn/app.sock}"
   local workers="${GUNICORN_WORKERS:-2}"
 
   cat > /usr/local/bin/app-start.sh <<EOF
