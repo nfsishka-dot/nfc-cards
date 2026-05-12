@@ -1251,53 +1251,57 @@ body.page-editor #editor-container.post-bg-active.editor-pattern-bg::before {
     font-weight: 400;
 }
 
-/* Уровни aA1–aA5 (Quill Header): 1.25× относительно quill.snow.css (2em / 1.5em / 1.17em / 1em / 0.83em / 0.67em) */
+/*
+ * Шкала заголовков (пресеты aA1–aA5 в тулбаре): em от базового текста абзаца (Standard / «Лист» не меняем).
+ * Предыдущая шкала уменьшена ровно в 1.5× (было → стало):
+ * h1 2.5em → 1.667em | h2 1.875em → 1.25em | h3 1.4625em → 0.975em | h4 1.25em → 0.833em | h5 1.0375em → 0.692em | h6 0.8375em → 0.558em
+ */
 .ql-snow .ql-editor h1 {
-    font-size: 2.5em;
+    font-size: calc(2.5em / 1.5);
 }
 
 .ql-snow .ql-editor h2 {
-    font-size: 1.875em;
+    font-size: calc(1.875em / 1.5);
 }
 
 .ql-snow .ql-editor h3 {
-    font-size: 1.4625em;
+    font-size: calc(1.4625em / 1.5);
 }
 
 .ql-snow .ql-editor h4 {
-    font-size: 1.25em;
+    font-size: calc(1.25em / 1.5);
 }
 
 .ql-snow .ql-editor h5 {
-    font-size: 1.0375em;
+    font-size: calc(1.0375em / 1.5);
 }
 
 .ql-snow .ql-editor h6 {
-    font-size: 0.8375em;
+    font-size: calc(0.8375em / 1.5);
 }
 
 .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="1"]::before {
-    font-size: 2.5em;
+    font-size: calc(2.5em / 1.5);
 }
 
 .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="2"]::before {
-    font-size: 1.875em;
+    font-size: calc(1.875em / 1.5);
 }
 
 .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="3"]::before {
-    font-size: 1.4625em;
+    font-size: calc(1.4625em / 1.5);
 }
 
 .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="4"]::before {
-    font-size: 1.25em;
+    font-size: calc(1.25em / 1.5);
 }
 
 .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="5"]::before {
-    font-size: 1.0375em;
+    font-size: calc(1.0375em / 1.5);
 }
 
 .ql-snow .ql-picker.ql-header .ql-picker-item[data-value="6"]::before {
-    font-size: 0.8375em;
+    font-size: calc(0.8375em / 1.5);
 }
 
 .ql-editor ul,
