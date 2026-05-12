@@ -657,6 +657,18 @@
                 return false;
             }
 
+            /**
+             * Клик только открывает меню (не выбирает значение): не восстанавливаем selection/focus,
+             * иначе setSelection + focus прокручивают страницу к каретке в длинной открытке.
+             * Выбор из списка — .ql-picker-item; там restore выполняем как раньше.
+             */
+            function shouldSkipRestoreForMenuOpenClick(t) {
+                if (!t || !t.closest) return false;
+                if (t.closest('.ql-picker-label')) return true;
+                if (t.closest('.ql-post-bg-picker')) return true;
+                return false;
+            }
+
             // Важно: на mobile нельзя без нужды глушить события тулбара
             // (iOS часто отменяет последующий click и Quill не выполняет command).
             // Мы сохраняем/восстанавливаем selection без preventDefault.
@@ -690,6 +702,14 @@
                 toolbar._hgSkipFocusRestore = false;
             }
 
+            function scheduleRestoreSavedSelection() {
+                if (!toolbar._hgToolbarSel) return;
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(restoreRange);
+                });
+            }
+            toolbar._hgScheduleRestoreSavedSelection = scheduleRestoreSavedSelection;
+
             toolbar.addEventListener('mousedown', function(e) {
                 if (e.button !== 0) return;
                 if (!shouldSaveSelectionTarget(e.target)) return;
@@ -705,9 +725,8 @@
             toolbar.addEventListener('click', function(e) {
                 if (!shouldSaveSelectionTarget(e.target)) return;
                 if (!toolbar._hgToolbarSel) return;
-                requestAnimationFrame(function() {
-                    requestAnimationFrame(restoreRange);
-                });
+                if (shouldSkipRestoreForMenuOpenClick(e.target)) return;
+                scheduleRestoreSavedSelection();
             }, true);
 
             toolbar.addEventListener('touchstart', function(e) {
@@ -722,9 +741,8 @@
             toolbar.addEventListener('touchend', function(e) {
                 if (!shouldSaveSelectionTarget(e.target)) return;
                 if (!toolbar._hgToolbarSel) return;
-                requestAnimationFrame(function() {
-                    requestAnimationFrame(restoreRange);
-                });
+                if (shouldSkipRestoreForMenuOpenClick(e.target)) return;
+                scheduleRestoreSavedSelection();
             }, { capture: true, passive: true });
         })(quill);
 
@@ -1569,6 +1587,10 @@
                     applyToEditor(bg);
                     setActiveItem(item);
                     popover.style.display = 'none';
+                    /* Попап в body — клик не проходит через restore тулбара; после выбора фона возвращаем фокус к тексту */
+                    if (toolbar._hgScheduleRestoreSavedSelection) {
+                        toolbar._hgScheduleRestoreSavedSelection();
+                    }
                 });
                 popImageGrid.appendChild(item);
             });
