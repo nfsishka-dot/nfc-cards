@@ -782,13 +782,23 @@ body.page-editor #editor-container .ql-editor.ql-blank::before {
     display: none !important;
 }
 
-/* Перебиваем Quill Snow: подписи через ::before + убираем гигантские размеры в списке */
-.ql-toolbar .ql-picker.ql-header .ql-picker-label::before,
-.ql-toolbar .ql-picker.ql-header .ql-picker-item::before {
+/* Перебиваем Quill Snow: подписи через ::before. Размер кнопки — компактный; пункты списка без фикс. font-size,
+ * иначе 0.68rem !important глушит шкалу aA1–aA5 ниже (calc от em). */
+.ql-toolbar .ql-picker.ql-header .ql-picker-label::before {
     content: 'aA' !important;
     display: inline-block;
     line-height: 1.1 !important;
     font-size: 0.68rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.ql-toolbar .ql-picker.ql-header .ql-picker-item::before {
+    content: 'aA' !important;
+    display: inline-block;
+    line-height: 1.1 !important;
     font-weight: 700 !important;
     letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
@@ -1256,26 +1266,39 @@ body.page-editor #editor-container.post-bg-active.editor-pattern-bg::before {
  * Предыдущая шкала уменьшена ровно в 1.5× (было → стало):
  * h1 2.5em → 1.667em | h2 1.875em → 1.25em | h3 1.4625em → 0.975em | h4 1.25em → 0.833em | h5 1.0375em → 0.692em | h6 0.8375em → 0.558em
  */
+/* Два варианта разметки Quill: #editor-container — обёртка или сам .ql-container */
+body.page-editor #editor-container.ql-container.ql-snow .ql-editor h1,
+body.page-editor #editor-container .ql-container.ql-snow .ql-editor h1,
 .ql-snow .ql-editor h1 {
     font-size: calc(2.5em / 1.5);
 }
 
+body.page-editor #editor-container.ql-container.ql-snow .ql-editor h2,
+body.page-editor #editor-container .ql-container.ql-snow .ql-editor h2,
 .ql-snow .ql-editor h2 {
     font-size: calc(1.875em / 1.5);
 }
 
+body.page-editor #editor-container.ql-container.ql-snow .ql-editor h3,
+body.page-editor #editor-container .ql-container.ql-snow .ql-editor h3,
 .ql-snow .ql-editor h3 {
     font-size: calc(1.4625em / 1.5);
 }
 
+body.page-editor #editor-container.ql-container.ql-snow .ql-editor h4,
+body.page-editor #editor-container .ql-container.ql-snow .ql-editor h4,
 .ql-snow .ql-editor h4 {
     font-size: calc(1.25em / 1.5);
 }
 
+body.page-editor #editor-container.ql-container.ql-snow .ql-editor h5,
+body.page-editor #editor-container .ql-container.ql-snow .ql-editor h5,
 .ql-snow .ql-editor h5 {
     font-size: calc(1.0375em / 1.5);
 }
 
+body.page-editor #editor-container.ql-container.ql-snow .ql-editor h6,
+body.page-editor #editor-container .ql-container.ql-snow .ql-editor h6,
 .ql-snow .ql-editor h6 {
     font-size: calc(0.8375em / 1.5);
 }
