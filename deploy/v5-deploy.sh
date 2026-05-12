@@ -46,15 +46,17 @@ sc_reload_nginx() {
 }
 
 sc_start_or_reload_app() {
+  # После смены symlink current нужны новые воркеры (код, шаблоны, collectstatic).
+  # reload(HUP) иногда оставляет старое поведение; restart надёжнее для прод-выката.
   if [[ "$(id -u)" -eq 0 ]]; then
     if systemctl is-active --quiet app 2>/dev/null; then
-      systemctl reload app 2>/dev/null || systemctl restart app
+      systemctl restart app
     else
       systemctl start app
     fi
   else
     if sudo -n systemctl is-active --quiet app 2>/dev/null; then
-      sudo -n systemctl reload app 2>/dev/null || sudo -n systemctl restart app
+      sudo -n systemctl restart app
     else
       sudo -n systemctl start app
     fi
