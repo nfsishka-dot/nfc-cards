@@ -831,11 +831,12 @@ body.page-editor #editor-container .ql-editor.ql-blank::before {
 }
 
 .ql-toolbar .ql-picker.ql-header .ql-picker-options {
-    width: var(--tap) !important;
+    /* Было 44×44 как кнопка — подписи aA1–5 с крупным em вылезали за край */
+    width: max-content !important;
     min-width: var(--tap) !important;
-    max-width: var(--tap) !important;
+    max-width: min(7.5rem, calc(100vw - 24px)) !important;
     box-sizing: border-box;
-    padding: 6px 3px !important;
+    padding: 6px 8px !important;
     left: 50% !important;
     right: auto !important;
     transform: translateX(-50%);
@@ -843,10 +844,11 @@ body.page-editor #editor-container .ql-editor.ql-blank::before {
 }
 
 .ql-toolbar .ql-picker.ql-header .ql-picker-item {
-    padding: 6px 2px !important;
+    padding: 6px 6px !important;
     text-align: center;
     border-radius: 10px;
     line-height: 1.2;
+    white-space: nowrap;
 }
 
 .ql-toolbar .ql-picker.ql-header .ql-picker-item:hover {
