@@ -9,7 +9,7 @@
     <title>НФСишка</title>
     <link rel="stylesheet" href="{% static 'hexgraph/css/color-picker.css' %}">
     <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'hexgraph/css/styles.css' %}?v=20260512140000">
+    <link rel="stylesheet" href="{% static 'hexgraph/css/styles.css' %}?v=20260513120000">
     <link rel="stylesheet" href="{% static 'hexgraph/css/fonts.css' %}?v=20260415-1">
     <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
     <script src="{% static 'hexgraph/js/colorPicker.js' %}"></script>
@@ -747,6 +747,75 @@
                 if (!toolbar._hgToolbarSel) return;
                 if (shouldSkipRestoreForMenuOpenClick(e.target)) return;
                 scheduleRestoreSavedSelection();
+            }, { capture: true, passive: true });
+        })(quill);
+
+        /**
+         * Даже без restoreRange Quill при открытии выпадашки (шрифт, заголовок, цвет…) двигает фокус/DOM,
+         * и браузер прокручивает страницу или .ql-editor к каретке — ощущение «улетел вниз».
+         * На mousedown/touchstart по «хрому» пикера (не пункт списка) сохраняем scroll и несколько раз
+         * возвращаем после тика Quill. Выбор .ql-picker-item не трогаем — там нужна обычная прокрутка к тексту.
+         */
+        (function suppressScrollOnPickerChromeInteraction(quill) {
+            var toolbar = document.querySelector('form .ql-toolbar') ||
+                document.querySelector('.editor-shell .ql-toolbar') ||
+                document.querySelector('.ql-toolbar');
+            if (!toolbar || !quill) return;
+
+            function snapScroll() {
+                var ed = document.querySelector('#editor-container .ql-editor');
+                return {
+                    wy: window.scrollY,
+                    wx: window.scrollX,
+                    de: document.documentElement.scrollTop,
+                    db: document.body.scrollTop,
+                    et: ed ? ed.scrollTop : null,
+                    el: ed ? ed.scrollLeft : null
+                };
+            }
+
+            function restoreScroll(s) {
+                if (!s) return;
+                if (typeof s.wy === 'number') window.scrollTo(typeof s.wx === 'number' ? s.wx : window.scrollX, s.wy);
+                if (typeof s.de === 'number') document.documentElement.scrollTop = s.de;
+                if (typeof s.db === 'number') document.body.scrollTop = s.db;
+                var ed = document.querySelector('#editor-container .ql-editor');
+                if (ed && typeof s.et === 'number') ed.scrollTop = s.et;
+                if (ed && typeof s.el === 'number') ed.scrollLeft = s.el;
+            }
+
+            function isPickerChromeOpenInteraction(t) {
+                if (!t || !t.closest) return false;
+                if (!toolbar.contains(t)) return false;
+                if (t.closest('.ql-picker-item')) return false;
+                if (t.closest('.ql-picker')) return true;
+                if (t.closest('.ql-post-bg-picker')) return true;
+                return false;
+            }
+
+            function scheduleRestoreScrollFrom(before) {
+                function one() {
+                    restoreScroll(before);
+                }
+                requestAnimationFrame(function() {
+                    requestAnimationFrame(function() {
+                        one();
+                        setTimeout(one, 0);
+                        setTimeout(one, 32);
+                        setTimeout(one, 90);
+                    });
+                });
+            }
+
+            toolbar.addEventListener('mousedown', function(e) {
+                if (e.button !== 0) return;
+                if (!isPickerChromeOpenInteraction(e.target)) return;
+                scheduleRestoreScrollFrom(snapScroll());
+            }, true);
+
+            toolbar.addEventListener('touchstart', function(e) {
+                if (!isPickerChromeOpenInteraction(e.target)) return;
+                scheduleRestoreScrollFrom(snapScroll());
             }, { capture: true, passive: true });
         })(quill);
 

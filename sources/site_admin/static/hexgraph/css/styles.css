@@ -1181,6 +1181,7 @@ body.page-editor .editor-shell .ql-toolbar .ql-picker-label:hover {
     max-width: 100%;
     min-height: 300px;
     overflow-y: auto;
+    overflow-anchor: none;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
     cursor: text;
