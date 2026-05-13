@@ -5,6 +5,7 @@ from django.contrib import messages
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods, require_POST
 
 from ..content_limits import human_error_message
@@ -14,6 +15,7 @@ from ..services import card_flow
 log = logging.getLogger("nfc_cards")
 
 
+@never_cache
 def card_editor(request, token):
     card = get_object_or_404(Card, token=token)
     if card.is_published:
